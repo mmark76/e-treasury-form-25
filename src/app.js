@@ -1,5 +1,5 @@
 import { initializeTemplateManager } from './features/templates.js';
-import { renderPreview } from './features/preview.js';
+import { initializeOfficialTemplateLayout, renderOfficialTemplate } from './features/official-template.js';
 import { readJson, writeJson, removeStoredValue } from './shared/storage.js';
 
 const DRAFT_KEY = 'eTreasury.form25.draft.v1';
@@ -53,20 +53,21 @@ function initializeApp() {
   const clearButton = document.getElementById('clear-form');
   const printButton = document.getElementById('print-form');
 
+  initializeOfficialTemplateLayout();
   setAutomaticDefaults();
   restoreDraft(form);
   setAutomaticDefaults();
   initializeTemplateManager();
-  renderPreview();
+  renderOfficialTemplate();
 
   form.addEventListener('input', () => {
     saveDraft(form);
-    renderPreview();
+    renderOfficialTemplate();
   });
 
   form.addEventListener('change', () => {
     saveDraft(form);
-    renderPreview();
+    renderOfficialTemplate();
   });
 
   clearButton.addEventListener('click', () => {
@@ -77,15 +78,15 @@ function initializeApp() {
     form.reset();
     setAutomaticDefaults();
     saveDraft(form);
-    renderPreview();
+    renderOfficialTemplate();
   });
 
   printButton.addEventListener('click', () => {
-    renderPreview();
+    renderOfficialTemplate();
     window.print();
   });
 
-  window.addEventListener('beforeprint', renderPreview);
+  window.addEventListener('beforeprint', renderOfficialTemplate);
 }
 
 initializeApp();
