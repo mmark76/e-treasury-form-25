@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E‑Treasury Form 25</title>
+  <link rel="stylesheet" href="src/styles/base.css">
+  <link rel="stylesheet" href="src/styles/app.css">
+  <link rel="stylesheet" href="src/styles/print.css" media="print">
+</head>
+<body>
+  <header class="app-header no-print">
+    <div>
+      <p class="eyebrow">Κυπριακή Δημοκρατία</p>
+      <h1>E‑Treasury Form 25</h1>
+      <p>Χειροκίνητη συμπλήρωση, αποθηκευμένα πρότυπα και εκτύπωση του εντύπου Γ.Λ.25.</p>
+    </div>
+    <div class="header-actions">
+      <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
+      <button id="print-form" class="button button-primary" type="button">Εκτύπωση / PDF</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="editor-panel no-print" aria-labelledby="editor-title">
+      <h2 id="editor-title">Στοιχεία εντύπου</h2>
+      <p class="panel-help">Σε κάθε πεδίο μπορείς να γράψεις νέα τιμή, να την αποθηκεύσεις ως πρότυπο ή να επιλέξεις παλαιότερη.</p>
+
+      <form id="invoice-form" autocomplete="off">
+        <fieldset>
+          <legend>Υπηρεσία και έκδοση</legend>
+          <div class="form-grid">
+            <label class="field field-wide">Τμήμα / Υπηρεσία
+              <input id="department" data-template-key="department" value="ΚΛΑΔΟΣ ΔΙΑΧΕΙΡΙΣΗΣ ΧΩΡΟΥ ΚΡΑΤΙΚΗΣ ΕΚΘΕΣΗΣ / ΥΕ / ΥΕΕ&Β">
+            </label>
+            <label class="field">Κωδικός Κεφαλαίου
+              <input id="chapterCode" data-template-key="chapterCode" value="1401100">
+            </label>
+            <label class="field">Αρ. Μητρώου Φ.Π.Α.
+              <input id="vatRegistration" data-template-key="vatRegistration" value="9000158T">
+            </label>
+            <label class="field">Αριθμός εντύπου
+              <input id="invoiceNumber" data-template-key="invoiceNumber" inputmode="numeric" placeholder="00000">
+            </label>
+            <label class="field">Ημερομηνία έκδοσης
+              <input id="issueDate" data-template-key="issueDate" type="date">
+            </label>
+            <label class="field field-wide">Διεύθυνση Υπηρεσίας
+              <input id="serviceAddress" data-template-key="serviceAddress" value="ΑΝΔΡΕΑ ΑΡΑΟΥΖΟΥ 6, ΛΕΥΚΩΣΙΑ">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Οφειλέτης</legend>
+          <div class="form-grid">
+            <label class="field field-wide">Όνομα οφειλέτη
+              <input id="debtorName" data-template-key="debtorName" placeholder="Ονοματεπώνυμο ή οργανισμός">
+            </label>
+            <label class="field">Αρ. Φορολογικής Ταυτότητας
+              <input id="debtorTaxId" data-template-key="debtorTaxId">
+            </label>
+            <label class="field field-wide">Διεύθυνση
+              <input id="debtorAddress" data-template-key="debtorAddress">
+            </label>
+            <label class="field">Ταχυδρομικός κώδικας
+              <input id="postalCode" data-template-key="postalCode" inputmode="numeric">
+            </label>
+            <label class="field">Τηλέφωνο
+              <input id="phone" data-template-key="phone" inputmode="tel">
+            </label>
+            <label class="field field-wide">Περίπτερο / Χώρος
+              <input id="spaceName" data-template-key="spaceName" placeholder="Περίπτερο ή χώρος κατανάλωσης">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Χρέωση</legend>
+          <div class="form-grid">
+            <label class="field field-wide">Περιγραφή αγαθών / υπηρεσιών
+              <textarea id="description" data-template-key="description" rows="2">ΚΑΤΑΝΑΛΩΣΗ ΗΛΕΚΤΡΙΚΟΥ ΡΕΥΜΑΤΟΣ</textarea>
+            </label>
+            <label class="field">Μήνας / Περίοδος
+              <input id="billingPeriod" data-template-key="billingPeriod" placeholder="ΜΑΪΟΣ 2026">
+            </label>
+            <label class="field">Καθαρό ποσό (€)
+              <input id="netAmount" data-template-key="netAmount" type="number" min="0" step="0.01" value="0.00">
+            </label>
+            <label class="field">Συντελεστής Φ.Π.Α. (%)
+              <input id="vatRate" data-template-key="vatRate" type="number" min="0" step="0.01" value="19">
+            </label>
+            <label class="field">Τύπος εξόφλησης
+              <select id="paymentType" data-template-key="paymentType">
+                <option>Πλήρης εξόφληση</option>
+                <option>Μερική εξόφληση</option>
+                <option>Προκαταβολή</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Υπογραφή και λογαριασμός</legend>
+          <div class="form-grid">
+            <label class="field">Ονοματεπώνυμο
+              <input id="signatoryName" data-template-key="signatoryName" value="ΜΑΡΚΕΛΛΟΣ ΜΑΡΚΙΔΗΣ">
+            </label>
+            <label class="field">Ημερομηνία
+              <input id="signDate" data-template-key="signDate" type="date">
+            </label>
+            <label class="field field-wide">Λογαριασμός Εσόδων Προϋπολογισμού
+              <input id="revenueAccount" data-template-key="revenueAccount">
+            </label>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <section class="preview-panel" aria-labelledby="preview-title">
+      <h2 id="preview-title" class="no-print">Προεπισκόπηση</h2>
+      <article id="invoice-preview" class="official-form" aria-label="Έντυπο Γ.Λ.25">
+        <div class="form-topline">
+          <strong>ΚΥΠΡΙΑΚΗ ΔΗΜΟΚΡΑΤΙΑ</strong>
+          <strong>No. <span data-output="invoiceNumber">00000</span></strong>
+        </div>
+        <h2>ΦΟΡΟΛΟΓΙΚΟ ΤΙΜΟΛΟΓΙΟ ΕΠΙ ΠΙΣΤΩΣΕΙ</h2>
+
+        <div class="detail-lines">
+          <p><span>Τμήμα/Υπηρεσία:</span> <strong data-output="department"></strong></p>
+          <div class="detail-row">
+            <p><span>Κωδικός Κεφαλαίου:</span> <strong data-output="chapterCode"></strong></p>
+            <p><span>Αρ. Μητρώου Φ.Π.Α.:</span> <strong data-output="vatRegistration"></strong></p>
+            <p><span>Ημερομηνία Έκδοσης:</span> <strong data-output="issueDate"></strong></p>
+          </div>
+          <p><span>Διεύθυνση Υπηρεσίας:</span> <strong data-output="serviceAddress"></strong></p>
+        </div>
+
+        <section class="boxed debtor-box">
+          <div><span>Όνομα Οφειλέτη:</span> <strong data-output="debtorName"></strong></div>
+          <div><span>Αρ. Φορολ. Ταυτότητας:</span> <strong data-output="debtorTaxId"></strong></div>
+          <div><span>Διεύθυνση:</span> <strong data-output="debtorAddress"></strong></div>
+          <div><span>Ταχ. Κώδ.:</span> <strong data-output="postalCode"></strong></div>
+          <div><span>Τηλ.:</span> <strong data-output="phone"></strong></div>
+          <div class="full-row"><span>Περίπτερο/Χώρος:</span> <strong data-output="spaceName"></strong></div>
+        </section>
+
+        <p class="payment-line">Το τιμολόγιο αφορά: <strong data-output="paymentType"></strong></p>
+
+        <table class="charge-table">
+          <thead>
+            <tr>
+              <th>Περιγραφή Αγαθών / Υπηρεσιών</th>
+              <th>Ποσότητα</th>
+              <th>Τιμή Μονάδος €</th>
+              <th>Ποσό χωρίς Φ.Π.Α. €</th>
+              <th>Φ.Π.Α. %</th>
+              <th>Ποσό Φ.Π.Α. €</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong data-output="description"></strong><br><span data-output="billingPeriod"></span></td>
+              <td>1</td>
+              <td data-output="netAmount"></td>
+              <td data-output="netAmount"></td>
+              <td data-output="vatRate"></td>
+              <td data-output="vatAmount"></td>
+            </tr>
+            <tr class="blank-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr class="blank-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="3">ΣΥΝΟΛΟ</th>
+              <th data-output="netAmount"></th>
+              <th></th>
+              <th data-output="vatAmount"></th>
+            </tr>
+            <tr>
+              <th colspan="5">ΟΛΙΚΟ ΠΟΣΟ</th>
+              <th data-output="grossAmount"></th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <section class="amount-words boxed">
+          <span>Ποσό Ολογράφως:</span>
+          <strong data-output="amountInWords"></strong>
+        </section>
+
+        <section class="signature-grid boxed">
+          <div><span>Υπογραφή</span><div class="signature-space"></div></div>
+          <div><span>Ονοματεπώνυμο</span><strong data-output="signatoryName"></strong></div>
+          <div><span>Ημερομηνία</span><strong data-output="signDate"></strong></div>
+          <div><span>Συντελεστής Φ.Π.Α.</span><strong><span data-output="vatRate"></span>%</strong></div>
+          <div><span>Ολικό Ποσό</span><strong data-output="grossAmount"></strong></div>
+          <div class="full-row"><span>Λογαριασμός Εσόδων Προϋπολογισμού</span><strong data-output="revenueAccount"></strong></div>
+        </section>
+
+        <footer class="form-footer">
+          <span>(Έντυπο Γ.Λ. 25)</span>
+          <span>* Απαλείψετε ό,τι δεν εφαρμόζεται.</span>
+        </footer>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

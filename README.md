@@ -1,5 +1,42 @@
-# E-TREASURY-FORM-25
+# E‑Treasury Form 25
 
-Web application for the manual completion, reusable field templates, calculation and printing of the Cyprus Treasury Form Γ.Λ.25.
+Web εφαρμογή για χειροκίνητη συμπλήρωση, επαναχρησιμοποίηση προτύπων ανά πεδίο, αυτόματο υπολογισμό και εκτύπωση/PDF του εντύπου Γ.Λ.25.
 
-The project follows a modular, feature-based architecture and grows through small, controlled changes.
+## Λειτουργίες MVP
+
+- χειροκίνητη συμπλήρωση όλων των βασικών πεδίων,
+- αποθήκευση, επιλογή και διαγραφή προτύπων ξεχωριστά για κάθε πεδίο,
+- αυτόματη προσωρινή αποθήκευση της τρέχουσας φόρμας στον browser,
+- αυτόματος υπολογισμός Φ.Π.Α. και συνολικού ποσού,
+- μετατροπή του συνολικού ποσού σε ελληνικές λέξεις,
+- προεπισκόπηση Α4 και εκτύπωση ή αποθήκευση σε PDF.
+
+## Εκτέλεση
+
+Η εφαρμογή δεν χρειάζεται build ή εξωτερικές βιβλιοθήκες. Λόγω των JavaScript modules πρέπει να ανοίξει μέσω τοπικού web server.
+
+```bash
+python -m http.server 8000
+```
+
+Έπειτα άνοιξε το `http://localhost:8000`.
+
+## Δομή
+
+```text
+src/
+├── app.js
+├── features/
+│   ├── calculations.js
+│   ├── number-to-words.js
+│   ├── preview.js
+│   └── templates.js
+├── shared/
+│   └── storage.js
+└── styles/
+    ├── base.css
+    ├── app.css
+    └── print.css
+```
+
+Οι αποφάσεις και οι απαιτήσεις βρίσκονται στον φάκελο `docs/`.
