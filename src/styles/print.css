@@ -1,0 +1,38 @@
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+html,
+body {
+  width: 210mm;
+  min-width: 210mm;
+  height: 297mm;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+
+.no-print {
+  display: none !important;
+}
+
+.workspace {
+  display: block;
+  padding: 0;
+}
+
+.preview-panel {
+  margin: 0;
+  padding: 0;
+}
+
+.official-form {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
