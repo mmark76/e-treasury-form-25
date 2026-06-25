@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1187" height="1749" viewBox="0 0 1187 1749">
+  <defs>
+    <style>
+      .page { fill: #fff; }
+      .line { stroke: #222; stroke-width: 2; fill: none; }
+      .thin { stroke-width: 1.4; }
+      .dotted { stroke: #444; stroke-width: 1.8; stroke-dasharray: 3.5 4.5; fill: none; }
+      .txt { font-family: Arial, Helvetica, sans-serif; fill: #111; }
+      .title { font-size: 24px; font-weight: 700; letter-spacing: 6px; }
+      .header { font-size: 18px; font-weight: 700; }
+      .label { font-size: 15px; }
+      .small { font-size: 12px; }
+      .bold { font-weight: 700; }
+      .center { text-anchor: middle; }
+      .right { text-anchor: end; }
+    </style>
+  </defs>
+
+  <rect class="page" x="0" y="0" width="1187" height="1749"/>
+
+  <text class="txt header center" x="593.5" y="66">ΚΥΠΡΙΑΚΗ        ΔΗΜΟΚΡΑΤΙΑ</text>
+  <text class="txt header bold" x="1010" y="66">No.</text>
+  <path class="line" d="M576 34 l16 8 22 -8 -7 18 13 20 -22 -6 -22 6 13 -20z"/>
+
+  <text class="txt title center" x="593.5" y="144">ΦΟΡΟΛΟΓΙΚΟ ΤΙΜΟΛΟΓΙΟ ΕΠΙ ΠΙΣΤΩΣΕΙ</text>
+
+  <text class="txt label" x="85" y="220">Τμήμα/Υπηρεσία:</text>
+  <line class="dotted" x1="230" y1="220" x2="1110" y2="220"/>
+
+  <text class="txt label" x="85" y="262">Κωδικός Κεφαλαίου:</text>
+  <line class="dotted" x1="240" y1="262" x2="430" y2="262"/>
+  <text class="txt label" x="448" y="262">Αρ. Μητρώου Φ.Π.Α.:</text>
+  <line class="dotted" x1="630" y1="262" x2="760" y2="262"/>
+  <text class="txt label" x="770" y="262">Ημερομηνία Έκδοσης:</text>
+  <line class="dotted" x1="973" y1="262" x2="1016" y2="262"/>
+  <text class="txt label" x="1019" y="262">/</text>
+  <line class="dotted" x1="1028" y1="262" x2="1071" y2="262"/>
+  <text class="txt label" x="1074" y="262">/20</text>
+  <line class="dotted" x1="1102" y1="262" x2="1150" y2="262"/>
+
+  <text class="txt label" x="85" y="304">Διεύθυνση Υπηρεσίας:</text>
+  <line class="dotted" x1="265" y1="304" x2="845" y2="304"/>
+  <text class="txt label" x="866" y="304">Ταχ. Κώδ.:</text>
+  <line class="dotted" x1="964" y1="304" x2="1150" y2="304"/>
+
+  <rect class="line" x="85" y="340" width="1065" height="121"/>
+  <line class="line thin" x1="85" y1="396" x2="1150" y2="396"/>
+  <line class="line thin" x1="723" y1="340" x2="723" y2="461"/>
+
+  <text class="txt label" x="102" y="384">Όνομα Οφειλέτη:</text>
+  <line class="dotted" x1="235" y1="384" x2="706" y2="384"/>
+  <text class="txt label" x="740" y="384">Αρ. Φορολ. Ταυτότητας:</text>
+  <line class="dotted" x1="930" y1="384" x2="1140" y2="384"/>
+
+  <text class="txt label" x="102" y="445">Διεύθυνση:</text>
+  <line class="dotted" x1="190" y1="445" x2="671" y2="445"/>
+  <text class="txt label" x="715" y="445">Ταχ. Κώδ.</text>
+  <line class="dotted" x1="799" y1="445" x2="960" y2="445"/>
+  <text class="txt label" x="972" y="445">Τηλ.:</text>
+  <line class="dotted" x1="1016" y1="445" x2="1140" y2="445"/>
+
+  <rect class="line" x="85" y="461" width="1065" height="47"/>
+  <text class="txt label" x="102" y="493">Το τιμολόγιο αφορά σε προκαταβολή / μερική εξόφληση / πλήρη εξόφληση *</text>
+  <line class="dotted" x1="787" y1="493" x2="1140" y2="493"/>
+
+  <rect class="line" x="85" y="508" width="1065" height="546"/>
+  <line class="line thin" x1="446" y1="508" x2="446" y2="1054"/>
+  <line class="line thin" x1="542" y1="508" x2="542" y2="1054"/>
+  <line class="line thin" x1="663" y1="508" x2="663" y2="1054"/>
+  <line class="line thin" x1="796" y1="508" x2="796" y2="1160"/>
+  <line class="line thin" x1="894" y1="508" x2="894" y2="1054"/>
+  <line class="line thin" x1="1013" y1="508" x2="1013" y2="1110"/>
+  <line class="line thin" x1="596" y1="556" x2="596" y2="1054"/>
+  <line class="line thin" x1="730" y1="556" x2="730" y2="1160"/>
+  <line class="line thin" x1="1078" y1="556" x2="1078" y2="1110"/>
+  <line class="line thin" x1="85" y1="556" x2="1150" y2="556"/>
+  <line class="line thin" x1="85" y1="602" x2="1150" y2="602"/>
+  <line class="line thin" x1="85" y1="648" x2="1150" y2="648"/>
+  <line class="line thin" x1="85" y1="694" x2="1150" y2="694"/>
+  <line class="line thin" x1="85" y1="740" x2="1150" y2="740"/>
+  <line class="line thin" x1="85" y1="786" x2="1150" y2="786"/>
+  <line class="line thin" x1="85" y1="832" x2="1150" y2="832"/>
+  <line class="line thin" x1="85" y1="878" x2="1150" y2="878"/>
+  <line class="line thin" x1="85" y1="924" x2="1150" y2="924"/>
+  <line class="line thin" x1="85" y1="970" x2="1150" y2="970"/>
+  <line class="line thin" x1="85" y1="1016" x2="1150" y2="1016"/>
+
+  <text class="txt label center" x="265" y="535">Περιγραφή Αγαθών / Υπηρεσιών</text>
+  <text class="txt label center" x="265" y="555">και Είδος Παράδοσης ή Παροχής</text>
+  <text class="txt label center" x="494" y="538">Ποσό-</text>
+  <text class="txt label center" x="494" y="557">τητα</text>
+  <text class="txt label center" x="603" y="530">Τιμή Μονάδος</text>
+  <text class="txt label center" x="573" y="552">€</text>
+  <text class="txt label center" x="629" y="552">σεντ</text>
+  <text class="txt label center" x="729" y="522">Ποσό Εισπρακτέο</text>
+  <text class="txt label center" x="729" y="542">χωρίς Φ.Π.Α.</text>
+  <text class="txt label center" x="699" y="552">€</text>
+  <text class="txt label center" x="763" y="552">σεντ</text>
+  <text class="txt label center" x="944" y="520">Συντε-</text>
+  <text class="txt label center" x="944" y="539">λεστής</text>
+  <text class="txt label center" x="944" y="558">Φ.Π.Α.</text>
+  <text class="txt label center" x="944" y="577">%</text>
+  <text class="txt label center" x="1082" y="530">Ποσό Φ.Π.Α.</text>
+  <text class="txt label center" x="1048" y="552">€</text>
+  <text class="txt label center" x="1112" y="552">σεντ</text>
+
+  <text class="txt label bold right" x="650" y="1082">ΣΥΝΟΛΟ 1</text>
+  <rect class="line" x="663" y="1054" width="133" height="50"/>
+  <rect class="line" x="796" y="1054" width="98" height="50"/>
+  <text class="txt label bold" x="898" y="1082">ΣΥΝΟΛΟ 2</text>
+  <rect class="line" x="1013" y="1054" width="65" height="50"/>
+  <rect class="line" x="1078" y="1054" width="72" height="50"/>
+
+  <text class="txt header center" x="463" y="1134">ΟΛΙΚΟ ΠΟΣΟ (ΣΥΝΟΛΟ 1 + ΣΥΝΟΛΟ 2)</text>
+  <rect class="line" x="663" y="1104" width="133" height="50"/>
+  <rect class="line" x="796" y="1104" width="98" height="50"/>
+
+  <rect class="line" x="85" y="1204" width="1065" height="531"/>
+  <line class="line thin" x1="85" y1="1270" x2="1150" y2="1270"/>
+  <line class="line thin" x1="303" y1="1270" x2="303" y2="1735"/>
+  <line class="line thin" x1="580" y1="1270" x2="580" y2="1735"/>
+  <line class="line thin" x1="860" y1="1204" x2="860" y2="1735"/>
+  <line class="line thin" x1="994" y1="1270" x2="994" y2="1735"/>
+  <line class="line thin" x1="1085" y1="1270" x2="1085" y2="1735"/>
+  <line class="line thin" x1="85" y1="1374" x2="860" y2="1374"/>
+  <line class="line thin" x1="85" y1="1465" x2="860" y2="1465"/>
+  <line class="line thin" x1="85" y1="1523" x2="1150" y2="1523"/>
+  <line class="line thin" x1="85" y1="1584" x2="1150" y2="1584"/>
+  <line class="line thin" x1="85" y1="1637" x2="1150" y2="1637"/>
+  <line class="line thin" x1="860" y1="1320" x2="1150" y2="1320"/>
+  <line class="line thin" x1="860" y1="1374" x2="1150" y2="1374"/>
+  <line class="line thin" x1="860" y1="1428" x2="1150" y2="1428"/>
+  <line class="line thin" x1="860" y1="1482" x2="1150" y2="1482"/>
+  <line class="line thin" x1="860" y1="1637" x2="1150" y2="1637"/>
+  <line class="line thin" x1="860" y1="1690" x2="1150" y2="1690"/>
+
+  <text class="txt label" x="100" y="1250">Ποσό Ολογράφως</text>
+  <line class="dotted" x1="315" y1="1248" x2="850" y2="1248"/>
+  <text class="txt header center" x="1005" y="1226">Ανάλυση Εισπρακτέου ποσού</text>
+  <text class="txt header center" x="1005" y="1248">κατά Κατηγορίες Συντελεστή Φ.Π.Α.</text>
+
+  <text class="txt header center" x="441" y="1340">Παραδόθηκε</text>
+  <text class="txt header center" x="720" y="1340">Παραλήφθηκε</text>
+  <text class="txt header center" x="927" y="1329">Συντελεστής</text>
+  <text class="txt header center" x="927" y="1351">Φ.Π.Α. %</text>
+  <text class="txt header center" x="1040" y="1325">Ποσό Εισπρακτέο</text>
+  <text class="txt header center" x="1040" y="1347">(Περιλαμβανομένου</text>
+  <text class="txt header center" x="1040" y="1369">Φ.Π.Α.)</text>
+  <text class="txt header center" x="1038" y="1414">€</text>
+  <text class="txt header center" x="1117" y="1414">σεντ</text>
+
+  <text class="txt header center" x="194" y="1438">Υπογραφή</text>
+  <text class="txt header center" x="194" y="1510">Ονοματεπώνυμο</text>
+  <text class="txt header center" x="194" y="1572">Ημερομηνία</text>
+
+  <text class="txt header right" x="986" y="1574">Ολικό Ποσό</text>
+  <rect class="line" x="994" y="1523" width="91" height="61"/>
+  <rect class="line" x="1085" y="1523" width="65" height="61"/>
+
+  <text class="txt header center" x="716" y="1631">Λογαριασμός Εσόδων Προϋπολογισμού</text>
+  <rect class="line" x="994" y="1584" width="91" height="53"/>
+  <rect class="line" x="1085" y="1584" width="65" height="53"/>
+  <rect class="line" x="994" y="1637" width="91" height="53"/>
+  <rect class="line" x="1085" y="1637" width="65" height="53"/>
+
+  <text class="txt header" x="86" y="1726">(Έντυπο Γ.Λ. 25)</text>
+  <text class="txt header" x="880" y="1726">* Απαλείψετε ό,τι δεν εφαρμόζεται.</text>
+</svg>
