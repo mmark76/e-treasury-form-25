@@ -2,7 +2,7 @@ import { calculateInvoice } from './calculations.js';
 import { amountToGreekWords } from './number-to-words.js';
 
 const TEMPLATE_MARKUP = `
-  <img class="form-template" src="assets/gl25-template.svg" alt="Επίσημο κενό έντυπο Γ.Λ.25">
+  <img class="form-template" src="assets/gl25-template.png" alt="Επίσημο κενό έντυπο Γ.Λ.25">
   <div class="form-overlay" aria-hidden="true">
     <span class="overlay-field overlay-invoice-number" data-output="invoiceNumber"></span>
     <span class="overlay-field overlay-department" data-output="department"></span>
