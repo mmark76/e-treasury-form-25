@@ -34,9 +34,9 @@
   position: absolute;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: hidden;
-  padding: 0 0.22cqw;
+  padding: 0 0.28cqw;
   color: #000;
   background: transparent;
   font-family: Arial, Helvetica, sans-serif;
@@ -44,8 +44,38 @@
   font-size: 1cqw;
   font-weight: 700;
   line-height: 1;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
+}
+
+.overlay-invoice-number,
+.overlay-chapter-code,
+.overlay-vat-registration,
+.overlay-issue-date,
+.overlay-service-postal,
+.overlay-debtor-tax-id,
+.overlay-postal-code,
+.overlay-phone,
+.overlay-vat-rate,
+.overlay-analysis-vat-rate,
+.overlay-net-euros,
+.overlay-net-cents,
+.overlay-vat-euros,
+.overlay-vat-cents,
+.overlay-sum1-euros,
+.overlay-sum1-cents,
+.overlay-sum2-euros,
+.overlay-sum2-cents,
+.overlay-gross-euros,
+.overlay-gross-cents,
+.overlay-analysis-euros,
+.overlay-analysis-cents,
+.overlay-sign-date,
+.overlay-bottom-gross-euros,
+.overlay-bottom-gross-cents {
+  justify-content: center;
+  text-align: center;
+  padding: 0;
 }
 
 .overlay-invoice-number { left: 82.5%; top: 3.3%; width: 11%; height: 2.2%; font-size: 16px; font-size: 2cqw; }
@@ -60,7 +90,7 @@
 .overlay-debtor-location { left: 23%; top: 24.1%; width: 38%; height: 2.2%; font-size: 13px; font-size: 1.62cqw; }
 .overlay-postal-code { left: 70.5%; top: 24.1%; width: 11%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
 .overlay-phone { left: 86%; top: 24.1%; width: 11%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
-.overlay-payment-type { left: 68%; top: 26.7%; width: 29%; height: 1.8%; font-size: 8px; font-size: 1cqw; }
+.overlay-payment-type { left: 30.5%; top: 26.7%; width: 66.5%; height: 1.8%; font-size: 8px; font-size: 0.98cqw; }
 .overlay-description-line-1,
 .overlay-description-line-2 { left: 9%; width: 28%; height: 2%; font-size: 10px; font-size: 1.25cqw; }
 .overlay-description-line-1 { top: 35.2%; }
@@ -108,7 +138,16 @@
 .overlay-sum2-cents { top: 57%; }
 .overlay-gross-euros,
 .overlay-gross-cents { top: 59.65%; }
-.overlay-amount-words { left: 26.5%; top: 65.35%; width: 45.5%; height: 2%; font-size: 7px; font-size: 0.88cqw; }
+.overlay-amount-words {
+  left: 26.5%;
+  top: 65.15%;
+  width: 45.5%;
+  height: 2.6%;
+  font-size: 7px;
+  font-size: 0.86cqw;
+  line-height: 1.08;
+  white-space: normal;
+}
 .overlay-analysis-euros,
 .overlay-analysis-cents { top: 74.65%; }
 .overlay-signatory-name { left: 26.5%; top: 80.55%; width: 22.5%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
