@@ -141,157 +141,99 @@ legend {
 }
 
 .official-form {
+  position: relative;
+  container-type: inline-size;
   width: min(100%, 210mm);
-  min-height: 297mm;
   margin: 0 auto;
-  padding: 11mm;
   border: 1px solid #b9c0ca;
   background: #ffffff;
-  color: #111111;
   box-shadow: 0 12px 35px rgba(23, 32, 51, 0.12);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
 }
 
-.form-topline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5mm;
-  font-size: 13px;
-}
-
-.official-form > h2 {
-  margin-bottom: 5mm;
-  text-align: center;
-  letter-spacing: 0.17em;
-  font-size: 17px;
-}
-
-.detail-lines p {
-  margin: 0 0 2mm;
-  border-bottom: 1px dotted #555555;
-  padding-bottom: 1mm;
-}
-
-.detail-lines span,
-.boxed span,
-.payment-line {
-  color: #353535;
-}
-
-.detail-row {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 4mm;
-}
-
-.boxed {
-  border: 1.4px solid #1d1d1d;
-}
-
-.debtor-box {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  margin-top: 4mm;
-}
-
-.debtor-box > div {
-  min-height: 10mm;
-  border-right: 1px solid #777777;
-  border-bottom: 1px solid #777777;
-  padding: 2.5mm;
-}
-
-.debtor-box > div:nth-child(2n) {
-  border-right: 0;
-}
-
-.debtor-box > div:nth-last-child(-n + 2) {
-  border-bottom: 0;
-}
-
-.full-row {
-  grid-column: 1 / -1;
-}
-
-.payment-line {
-  margin: 0;
-  border: 1.4px solid #1d1d1d;
-  border-top: 0;
-  padding: 2.5mm;
-}
-
-.charge-table {
+.official-form-background {
+  display: block;
   width: 100%;
-  margin-top: 4mm;
-  border-collapse: collapse;
-  table-layout: fixed;
+  height: auto;
 }
 
-.charge-table th,
-.charge-table td {
-  border: 1px solid #222222;
-  padding: 2.2mm;
+.overlay-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.overlay-text,
+.overlay-stack {
+  position: absolute;
+  color: #111111;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.12cqw;
+  line-height: 1.08;
+}
+
+.overlay-text {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.overlay-stack .overlay-text {
+  position: static;
+}
+
+.block {
+  display: block;
+}
+
+.strong {
+  font-weight: 700;
+}
+
+.align-center {
   text-align: center;
-  vertical-align: middle;
 }
 
-.charge-table th:first-child,
-.charge-table td:first-child {
-  width: 36%;
-  text-align: left;
-  white-space: pre-line;
+.align-right {
+  text-align: right;
 }
 
-.charge-table .blank-row {
-  height: 13mm;
-}
-
-.amount-words {
-  display: grid;
-  grid-template-columns: 34mm 1fr;
-  gap: 3mm;
-  margin-top: 5mm;
-  padding: 3mm;
-  min-height: 16mm;
-  align-items: center;
-}
-
-.signature-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-top: 5mm;
-}
-
-.signature-grid > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 4mm;
-  min-height: 12mm;
-  border-right: 1px solid #777777;
-  border-bottom: 1px solid #777777;
-  padding: 3mm;
-}
-
-.signature-grid > div:nth-child(2n) {
-  border-right: 0;
-}
-
-.signature-grid > div:last-child {
-  border-bottom: 0;
-}
-
-.signature-space {
-  min-width: 45mm;
-}
-
-.form-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 6mm;
-  font-size: 9px;
-}
+.field-invoice-number { left: 79.9%; top: 2.65%; width: 9%; font-weight: 700; }
+.field-department { left: 21.5%; top: 11.2%; width: 72%; }
+.field-chapter { left: 20.5%; top: 13.6%; width: 12%; }
+.field-vat-registration { left: 55.1%; top: 13.6%; width: 11%; }
+.field-issue-day { left: 82.2%; top: 13.6%; width: 3.5%; }
+.field-issue-month { left: 87.0%; top: 13.6%; width: 3.5%; }
+.field-issue-year { left: 92.0%; top: 13.6%; width: 5%; }
+.field-service-address { left: 22.2%; top: 15.95%; width: 50%; }
+.field-debtor-name { left: 22%; top: 21.95%; width: 38%; }
+.field-debtor-tax-id { left: 84%; top: 21.95%; width: 13%; }
+.field-debtor-address { left: 17%; top: 25.4%; width: 43%; }
+.field-postal-code { left: 77.5%; top: 25.4%; width: 8%; }
+.field-phone { left: 89.8%; top: 25.4%; width: 7.2%; }
+.field-payment-type { left: 74%; top: 28.15%; width: 22%; }
+.field-description { left: 3.8%; top: 34.0%; width: 28.2%; }
+.field-quantity { left: 41.3%; top: 34.55%; width: 3.4%; }
+.field-unit-euros { left: 46.3%; top: 34.55%; width: 5.8%; }
+.field-unit-cents { left: 53.0%; top: 34.55%; width: 3.5%; }
+.field-net-euros { left: 59.2%; top: 34.55%; width: 7.5%; }
+.field-net-cents { left: 66.2%; top: 34.55%; width: 4%; }
+.field-vat-rate { left: 74.8%; top: 34.55%; width: 6.2%; }
+.field-vat-euros { left: 84.7%; top: 34.55%; width: 6%; }
+.field-vat-cents { left: 91.1%; top: 34.55%; width: 4.3%; }
+.field-total1-euros { left: 59.2%; top: 60.45%; width: 7.5%; }
+.field-total1-cents { left: 66.2%; top: 60.45%; width: 4%; }
+.field-total2-euros { left: 84.7%; top: 60.45%; width: 6%; }
+.field-total2-cents { left: 91.1%; top: 60.45%; width: 4.3%; }
+.field-gross-euros { left: 59.2%; top: 63.35%; width: 7.5%; }
+.field-gross-cents { left: 66.2%; top: 63.35%; width: 4%; }
+.field-amount-words { left: 20.5%; top: 70.55%; width: 49%; }
+.field-signatory { left: 9.5%; top: 85.65%; width: 17%; }
+.field-sign-date { left: 8.5%; top: 89.85%; width: 18%; }
+.field-analysis-vat-rate { left: 74.9%; top: 79.15%; width: 6.2%; }
+.field-analysis-gross-euros { left: 84.7%; top: 79.15%; width: 6%; }
+.field-analysis-gross-cents { left: 91.1%; top: 79.15%; width: 4.3%; }
+.field-analysis-total-euros { left: 84.7%; top: 89.85%; width: 6%; font-weight: 700; }
+.field-analysis-total-cents { left: 91.1%; top: 89.85%; width: 4.3%; font-weight: 700; }
+.field-revenue-account { left: 47%; top: 92.65%; width: 32%; }
 
 @media (max-width: 1120px) {
   .workspace {
@@ -301,10 +243,7 @@ legend {
 
 @media (max-width: 680px) {
   .app-header,
-  .form-grid,
-  .detail-row,
-  .debtor-box,
-  .signature-grid {
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
@@ -312,17 +251,11 @@ legend {
     display: grid;
   }
 
-  .field-wide,
-  .full-row {
+  .field-wide {
     grid-column: auto;
   }
 
   .template-controls {
     grid-template-columns: 1fr;
-  }
-
-  .official-form {
-    padding: 6mm;
-    font-size: 9px;
   }
 }
