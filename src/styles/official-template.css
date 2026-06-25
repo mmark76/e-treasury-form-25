@@ -1,0 +1,133 @@
+.official-form {
+  position: relative;
+  width: min(100%, 210mm);
+  min-height: 0;
+  aspect-ratio: 210 / 297;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #b9c0ca;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(23, 32, 51, 0.12);
+  container-type: inline-size;
+}
+
+.form-template,
+.form-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.form-template {
+  display: block;
+  object-fit: fill;
+}
+
+.form-overlay {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.overlay-field {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 0.22cqw;
+  color: #000;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  font-size: 1cqw;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.overlay-invoice-number { left: 82.5%; top: 3.3%; width: 11%; height: 2.2%; font-size: 16px; font-size: 2cqw; }
+.overlay-department { left: 23%; top: 11.55%; width: 73%; height: 1.9%; font-size: 8px; font-size: 1.02cqw; }
+.overlay-chapter-code { left: 25%; top: 14.45%; width: 12.5%; height: 1.8%; font-size: 10px; font-size: 1.25cqw; }
+.overlay-vat-registration { left: 55%; top: 14.45%; width: 12%; height: 1.8%; font-size: 10px; font-size: 1.25cqw; }
+.overlay-issue-date { left: 85%; top: 14.45%; width: 13%; height: 1.8%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-service-address { left: 25%; top: 17.15%; width: 51%; height: 1.8%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-service-postal { left: 86%; top: 17.15%; width: 12%; height: 1.8%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-debtor-name { left: 23%; top: 21.4%; width: 38%; height: 2.2%; font-size: 13px; font-size: 1.62cqw; }
+.overlay-debtor-tax-id { left: 81%; top: 21.4%; width: 16%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-debtor-location { left: 23%; top: 24.1%; width: 38%; height: 2.2%; font-size: 13px; font-size: 1.62cqw; }
+.overlay-postal-code { left: 70.5%; top: 24.1%; width: 11%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-phone { left: 86%; top: 24.1%; width: 11%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-payment-type { left: 68%; top: 26.7%; width: 29%; height: 1.8%; font-size: 8px; font-size: 1cqw; }
+.overlay-description-line-1,
+.overlay-description-line-2 { left: 9%; width: 28%; height: 2%; font-size: 10px; font-size: 1.25cqw; }
+.overlay-description-line-1 { top: 35.2%; }
+.overlay-description-line-2 { top: 37.75%; }
+.overlay-billing-period { left: 12%; top: 43.1%; width: 23%; height: 2%; font-size: 10px; font-size: 1.25cqw; }
+.overlay-vat-rate,
+.overlay-analysis-vat-rate { left: 75.6%; width: 5.7%; height: 2%; font-size: 10px; font-size: 1.25cqw; }
+.overlay-vat-rate { top: 35.2%; }
+.overlay-analysis-vat-rate { top: 74.65%; }
+.overlay-net-euros,
+.overlay-sum1-euros,
+.overlay-gross-euros { left: 59.6%; width: 10%; }
+.overlay-net-cents,
+.overlay-sum1-cents,
+.overlay-gross-cents { left: 69.8%; width: 5.2%; }
+.overlay-vat-euros,
+.overlay-sum2-euros,
+.overlay-analysis-euros,
+.overlay-bottom-gross-euros { left: 82.2%; width: 10.7%; }
+.overlay-vat-cents,
+.overlay-sum2-cents,
+.overlay-analysis-cents,
+.overlay-bottom-gross-cents { left: 93%; width: 5.2%; }
+.overlay-net-euros,
+.overlay-net-cents,
+.overlay-vat-euros,
+.overlay-vat-cents,
+.overlay-sum1-euros,
+.overlay-sum1-cents,
+.overlay-sum2-euros,
+.overlay-sum2-cents,
+.overlay-gross-euros,
+.overlay-gross-cents,
+.overlay-analysis-euros,
+.overlay-analysis-cents,
+.overlay-bottom-gross-euros,
+.overlay-bottom-gross-cents { height: 2%; font-size: 12px; font-size: 1.5cqw; }
+.overlay-net-euros,
+.overlay-net-cents,
+.overlay-vat-euros,
+.overlay-vat-cents { top: 43.1%; }
+.overlay-sum1-euros,
+.overlay-sum1-cents,
+.overlay-sum2-euros,
+.overlay-sum2-cents { top: 57%; }
+.overlay-gross-euros,
+.overlay-gross-cents { top: 59.65%; }
+.overlay-amount-words { left: 26.5%; top: 65.35%; width: 45.5%; height: 2%; font-size: 7px; font-size: 0.88cqw; }
+.overlay-analysis-euros,
+.overlay-analysis-cents { top: 74.65%; }
+.overlay-signatory-name { left: 26.5%; top: 80.55%; width: 22.5%; height: 2%; font-size: 9px; font-size: 1.12cqw; }
+.overlay-sign-date { left: 26.5%; top: 84.75%; width: 22.5%; height: 2%; font-size: 12px; font-size: 1.5cqw; }
+.overlay-bottom-gross-euros,
+.overlay-bottom-gross-cents { top: 84.75%; }
+.overlay-revenue-account { left: 50%; top: 87.1%; width: 31%; height: 1.8%; font-size: 8px; font-size: 1cqw; }
+
+@media print {
+  .official-form {
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    aspect-ratio: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
