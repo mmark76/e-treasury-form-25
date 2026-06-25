@@ -18,6 +18,7 @@
     <div class="header-actions">
       <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
       <button id="print-form" class="button button-primary" type="button">Εκτύπωση / PDF</button>
+      <button id="download-pdf" class="button button-primary" type="button">Λήψη PDF</button>
     </div>
   </header>
 
@@ -42,8 +43,11 @@
             <label class="field">Αριθμός εντύπου
               <input id="invoiceNumber" data-template-key="invoiceNumber" inputmode="numeric" placeholder="00000">
             </label>
-            <label class="field">Ημερομηνία έκδοσης
-              <input id="issueDate" data-template-key="issueDate" type="date">
+            <label class="field issue-date-field">Ημερομηνία έκδοσης
+              <span class="date-entry">
+                <input id="issueDate" data-template-key="issueDate" inputmode="numeric" maxlength="10" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy" required>
+                <input class="date-picker-proxy" type="date" aria-hidden="true" tabindex="-1">
+              </span>
             </label>
             <label class="field field-wide">Διεύθυνση Υπηρεσίας
               <input id="serviceAddress" data-template-key="serviceAddress" value="ΑΝΔΡΕΑ ΑΡΑΟΥΖΟΥ 6, ΛΕΥΚΩΣΙΑ">
@@ -107,7 +111,10 @@
               <input id="signatoryName" data-template-key="signatoryName" value="ΜΑΡΚΕΛΛΟΣ ΜΑΡΚΙΔΗΣ">
             </label>
             <label class="field">Ημερομηνία
-              <input id="signDate" data-template-key="signDate" type="date">
+              <span class="date-entry">
+                <input id="signDate" data-template-key="signDate" inputmode="numeric" maxlength="10" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy">
+                <input class="date-picker-proxy" type="date" aria-hidden="true" tabindex="-1">
+              </span>
             </label>
             <label class="field field-wide">Λογαριασμός Εσόδων Προϋπολογισμού
               <input id="revenueAccount" data-template-key="revenueAccount">
@@ -173,6 +180,10 @@
       </article>
     </section>
   </main>
+
+  <footer class="app-footer no-print">
+    <a href="https://markellosecosystem.com/" target="_blank" rel="noopener noreferrer">Markellos Ecosystem</a>
+  </footer>
 
   <script type="module" src="src/app.js"></script>
 </body>

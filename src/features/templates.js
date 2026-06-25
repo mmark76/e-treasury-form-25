@@ -63,6 +63,44 @@ export function initializeTemplateManager() {
     const controls = document.createElement('div');
     controls.className = 'template-controls';
 
+    if (key === 'issueDate' || key === 'signDate') {
+      const pickerButton = document.createElement('button');
+      pickerButton.type = 'button';
+      pickerButton.className = `template-select date-picker-button ${key}-picker-button`;
+      pickerButton.textContent = 'Επιλογή';
+      pickerButton.setAttribute('aria-label', 'Επιλογή ημερομηνίας');
+
+      const saveButton = document.createElement('button');
+      saveButton.type = 'button';
+      saveButton.className = 'template-button';
+      saveButton.textContent = 'Αποθήκευση';
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'template-button template-button-danger';
+      deleteButton.textContent = 'Διαγραφή';
+
+      saveButton.addEventListener('click', () => {
+        const value = String(field.value).trim();
+        if (!value || !field.reportValidity()) return;
+
+        templates[key] = uniqueValues([...templates[key], value]);
+        saveTemplates(templates);
+      });
+
+      deleteButton.addEventListener('click', () => {
+        const value = String(field.value).trim();
+        if (!value) return;
+
+        templates[key] = templates[key].filter(savedValue => savedValue !== value);
+        saveTemplates(templates);
+      });
+
+      controls.append(pickerButton, saveButton, deleteButton);
+      field.closest('.date-entry')?.insertAdjacentElement('afterend', controls);
+      return;
+    }
+
     const select = document.createElement('select');
     select.className = 'template-select';
     select.setAttribute('aria-label', `Αποθηκευμένα πρότυπα για ${key}`);

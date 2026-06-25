@@ -95,6 +95,24 @@ function formatDate(value) {
   return year && month && day ? `${day} / ${month} / ${year}` : value;
 }
 
+function formatIssueDate(value) {
+  if (!value) return '';
+  const displayMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (displayMatch) {
+    const [, day, month, year] = displayMatch;
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    const isRealDate =
+      date.getFullYear() === Number(year) &&
+      date.getMonth() === Number(month) - 1 &&
+      date.getDate() === Number(day);
+
+    return isRealDate ? value : '';
+  }
+
+  const [year, month, day] = value.split('-');
+  return year && month && day ? `${day}/${month}/${year}` : value;
+}
+
 function setOutput(key, value) {
   document.querySelectorAll(`[data-output="${key}"]`).forEach(element => {
     element.textContent = value ?? '';
@@ -167,7 +185,7 @@ export function renderOfficialTemplate() {
     chapterCode: getValue('chapterCode'),
     vatRegistration: getValue('vatRegistration'),
     invoiceNumber: padInvoiceNumber(getValue('invoiceNumber')),
-    issueDate: formatDate(getValue('issueDate')),
+    issueDate: formatIssueDate(getValue('issueDate')),
     serviceAddress: getValue('serviceAddress'),
     servicePostalCode: getValue('servicePostalCode'),
     debtorName: getValue('debtorName'),
@@ -188,7 +206,7 @@ export function renderOfficialTemplate() {
     grossCents: gross.cents,
     amountInWords: amountToGreekWords(calculation.grossAmount),
     signatoryName: getValue('signatoryName'),
-    signDate: formatDate(getValue('signDate')),
+    signDate: formatIssueDate(getValue('signDate')),
     revenueAccount: getValue('revenueAccount')
   };
 

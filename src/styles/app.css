@@ -55,6 +55,22 @@
   padding: 1.5rem;
 }
 
+.app-footer {
+  padding: 0 1.5rem 1.5rem;
+  text-align: center;
+}
+
+.app-footer a {
+  color: #526078;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.app-footer a:hover {
+  text-decoration: underline;
+}
+
 .editor-panel,
 .preview-panel {
   min-width: 0;
@@ -101,11 +117,39 @@ legend {
   grid-column: 1 / -1;
 }
 
+.issue-date-field {
+  grid-column: 1 / -1;
+}
+
 .field input,
 .field textarea,
 .field > select {
   margin-top: 0.35rem;
   font-weight: 500;
+}
+
+.date-entry {
+  position: relative;
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.date-entry input {
+  margin-top: 0;
+}
+
+.date-entry input[id] {
+  width: 100%;
+}
+
+.date-picker-proxy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .template-controls {
@@ -124,6 +168,14 @@ legend {
   font-size: 0.76rem;
 }
 
+.date-picker-button {
+  width: 100%;
+  background: #ffffff;
+  color: inherit;
+  font-weight: 500;
+  text-align: left;
+}
+
 .template-button {
   width: auto;
   background: #edf3fb;
@@ -134,6 +186,101 @@ legend {
 .template-button-danger {
   background: #fff0f0;
   color: #9d2c2c;
+}
+
+.feature-panel {
+  margin: 0 0 1rem;
+  border: 1px solid #d7deea;
+  border-radius: 10px;
+  padding: 1rem;
+  background: #fbfdff;
+}
+
+.feature-panel h3 {
+  margin: 0 0 0.35rem;
+}
+
+.feature-help {
+  margin: 0 0 0.8rem;
+  color: #526078;
+  font-size: 0.86rem;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.feature-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.archive-filters {
+  align-items: end;
+  margin: 0.75rem 0;
+}
+
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.records-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.records-table th,
+.records-table td {
+  border: 1px solid #d7deea;
+  padding: 0.4rem;
+  vertical-align: top;
+}
+
+.records-table th {
+  background: #edf3fb;
+  text-align: left;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 12rem;
+}
+
+.archive-detail {
+  margin-top: 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.84rem;
+}
+
+.archive-detail:empty {
+  display: none;
+}
+
+.archive-detail dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.25rem 0.7rem;
+  margin: 0.5rem 0 0;
+}
+
+.archive-detail dt {
+  font-weight: 800;
+}
+
+.archive-detail dd {
+  margin: 0;
 }
 
 .preview-panel > h2 {
@@ -256,6 +403,11 @@ legend {
   }
 
   .template-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-grid,
+  .archive-detail dl {
     grid-template-columns: 1fr;
   }
 }
