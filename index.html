@@ -13,7 +13,7 @@
     <div>
       <p class="eyebrow">Κυπριακή Δημοκρατία</p>
       <h1>E‑Treasury Form 25</h1>
-      <p>Χειροκίνητη συμπλήρωση, αποθηκευμένα πρότυπα και εκτύπωση του εντύπου Γ.Λ.25.</p>
+      <p>Χειροκίνητη συμπλήρωση, αποθηκευμένα πρότυπα και εκτύπωση του επίσημου εντύπου Γ.Λ.25.</p>
     </div>
     <div class="header-actions">
       <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
@@ -118,90 +118,58 @@
     </section>
 
     <section class="preview-panel" aria-labelledby="preview-title">
-      <h2 id="preview-title" class="no-print">Προεπισκόπηση</h2>
+      <h2 id="preview-title" class="no-print">Προεπισκόπηση επίσημου εντύπου</h2>
       <article id="invoice-preview" class="official-form" aria-label="Έντυπο Γ.Λ.25">
-        <div class="form-topline">
-          <strong>ΚΥΠΡΙΑΚΗ ΔΗΜΟΚΡΑΤΙΑ</strong>
-          <strong>No. <span data-output="invoiceNumber">00000</span></strong>
-        </div>
-        <h2>ΦΟΡΟΛΟΓΙΚΟ ΤΙΜΟΛΟΓΙΟ ΕΠΙ ΠΙΣΤΩΣΕΙ</h2>
+        <img class="official-form-background" src="src/assets/gl25-template.svg" alt="Επίσημο έντυπο Γ.Λ.25">
 
-        <div class="detail-lines">
-          <p><span>Τμήμα/Υπηρεσία:</span> <strong data-output="department"></strong></p>
-          <div class="detail-row">
-            <p><span>Κωδικός Κεφαλαίου:</span> <strong data-output="chapterCode"></strong></p>
-            <p><span>Αρ. Μητρώου Φ.Π.Α.:</span> <strong data-output="vatRegistration"></strong></p>
-            <p><span>Ημερομηνία Έκδοσης:</span> <strong data-output="issueDate"></strong></p>
+        <div class="overlay-layer" aria-hidden="true">
+          <span class="overlay-text field-invoice-number align-center" data-output="invoiceNumber"></span>
+
+          <span class="overlay-text field-department" data-output="department"></span>
+          <span class="overlay-text field-chapter" data-output="chapterCode"></span>
+          <span class="overlay-text field-vat-registration" data-output="vatRegistration"></span>
+          <span class="overlay-text field-issue-day align-center" data-output="issueDay"></span>
+          <span class="overlay-text field-issue-month align-center" data-output="issueMonth"></span>
+          <span class="overlay-text field-issue-year align-center" data-output="issueYear"></span>
+          <span class="overlay-text field-service-address" data-output="serviceAddress"></span>
+
+          <span class="overlay-text field-debtor-name" data-output="debtorName"></span>
+          <span class="overlay-text field-debtor-tax-id" data-output="debtorTaxId"></span>
+          <span class="overlay-text field-debtor-address" data-output="debtorAddress"></span>
+          <span class="overlay-text field-postal-code align-center" data-output="postalCode"></span>
+          <span class="overlay-text field-phone align-center" data-output="phone"></span>
+          <span class="overlay-text field-payment-type" data-output="paymentType"></span>
+
+          <div class="overlay-stack field-description">
+            <span class="overlay-text block strong" data-output="description"></span>
+            <span class="overlay-text block" data-output="billingPeriod"></span>
           </div>
-          <p><span>Διεύθυνση Υπηρεσίας:</span> <strong data-output="serviceAddress"></strong></p>
+          <span class="overlay-text field-quantity align-center">1</span>
+          <span class="overlay-text field-unit-euros align-right" data-output="netEuros"></span>
+          <span class="overlay-text field-unit-cents align-center" data-output="netCents"></span>
+          <span class="overlay-text field-net-euros align-right" data-output="netEuros"></span>
+          <span class="overlay-text field-net-cents align-center" data-output="netCents"></span>
+          <span class="overlay-text field-vat-rate align-center" data-output="vatRate"></span>
+          <span class="overlay-text field-vat-euros align-right" data-output="vatEuros"></span>
+          <span class="overlay-text field-vat-cents align-center" data-output="vatCents"></span>
+
+          <span class="overlay-text field-total1-euros align-right" data-output="netEuros"></span>
+          <span class="overlay-text field-total1-cents align-center" data-output="netCents"></span>
+          <span class="overlay-text field-total2-euros align-right" data-output="vatEuros"></span>
+          <span class="overlay-text field-total2-cents align-center" data-output="vatCents"></span>
+          <span class="overlay-text field-gross-euros align-right" data-output="grossEuros"></span>
+          <span class="overlay-text field-gross-cents align-center" data-output="grossCents"></span>
+
+          <span class="overlay-text field-amount-words" data-output="amountInWords"></span>
+          <span class="overlay-text field-signatory align-center" data-output="signatoryName"></span>
+          <span class="overlay-text field-sign-date align-center" data-output="signDate"></span>
+          <span class="overlay-text field-analysis-vat-rate align-center" data-output="vatRate"></span>
+          <span class="overlay-text field-analysis-gross-euros align-right" data-output="grossEuros"></span>
+          <span class="overlay-text field-analysis-gross-cents align-center" data-output="grossCents"></span>
+          <span class="overlay-text field-analysis-total-euros align-right" data-output="grossEuros"></span>
+          <span class="overlay-text field-analysis-total-cents align-center" data-output="grossCents"></span>
+          <span class="overlay-text field-revenue-account align-center" data-output="revenueAccount"></span>
         </div>
-
-        <section class="boxed debtor-box">
-          <div><span>Όνομα Οφειλέτη:</span> <strong data-output="debtorName"></strong></div>
-          <div><span>Αρ. Φορολ. Ταυτότητας:</span> <strong data-output="debtorTaxId"></strong></div>
-          <div><span>Διεύθυνση:</span> <strong data-output="debtorAddress"></strong></div>
-          <div><span>Ταχ. Κώδ.:</span> <strong data-output="postalCode"></strong></div>
-          <div><span>Τηλ.:</span> <strong data-output="phone"></strong></div>
-          <div class="full-row"><span>Περίπτερο/Χώρος:</span> <strong data-output="spaceName"></strong></div>
-        </section>
-
-        <p class="payment-line">Το τιμολόγιο αφορά: <strong data-output="paymentType"></strong></p>
-
-        <table class="charge-table">
-          <thead>
-            <tr>
-              <th>Περιγραφή Αγαθών / Υπηρεσιών</th>
-              <th>Ποσότητα</th>
-              <th>Τιμή Μονάδος €</th>
-              <th>Ποσό χωρίς Φ.Π.Α. €</th>
-              <th>Φ.Π.Α. %</th>
-              <th>Ποσό Φ.Π.Α. €</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong data-output="description"></strong><br><span data-output="billingPeriod"></span></td>
-              <td>1</td>
-              <td data-output="netAmount"></td>
-              <td data-output="netAmount"></td>
-              <td data-output="vatRate"></td>
-              <td data-output="vatAmount"></td>
-            </tr>
-            <tr class="blank-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr class="blank-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <th colspan="3">ΣΥΝΟΛΟ</th>
-              <th data-output="netAmount"></th>
-              <th></th>
-              <th data-output="vatAmount"></th>
-            </tr>
-            <tr>
-              <th colspan="5">ΟΛΙΚΟ ΠΟΣΟ</th>
-              <th data-output="grossAmount"></th>
-            </tr>
-          </tfoot>
-        </table>
-
-        <section class="amount-words boxed">
-          <span>Ποσό Ολογράφως:</span>
-          <strong data-output="amountInWords"></strong>
-        </section>
-
-        <section class="signature-grid boxed">
-          <div><span>Υπογραφή</span><div class="signature-space"></div></div>
-          <div><span>Ονοματεπώνυμο</span><strong data-output="signatoryName"></strong></div>
-          <div><span>Ημερομηνία</span><strong data-output="signDate"></strong></div>
-          <div><span>Συντελεστής Φ.Π.Α.</span><strong><span data-output="vatRate"></span>%</strong></div>
-          <div><span>Ολικό Ποσό</span><strong data-output="grossAmount"></strong></div>
-          <div class="full-row"><span>Λογαριασμός Εσόδων Προϋπολογισμού</span><strong data-output="revenueAccount"></strong></div>
-        </section>
-
-        <footer class="form-footer">
-          <span>(Έντυπο Γ.Λ. 25)</span>
-          <span>* Απαλείψετε ό,τι δεν εφαρμόζεται.</span>
-        </footer>
       </article>
     </section>
   </main>
