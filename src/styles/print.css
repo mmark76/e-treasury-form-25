@@ -22,6 +22,9 @@ body {
 }
 
 .preview-panel {
+  position: static !important;
+  visibility: visible !important;
+  width: auto !important;
   margin: 0;
   padding: 0;
 }

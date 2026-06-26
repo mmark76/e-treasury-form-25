@@ -56,6 +56,40 @@ function canvasFont(style, scale) {
   return `${weight} ${size}px ${family}`;
 }
 
+function wrapCanvasText(context, text, width) {
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+
+  words.forEach(word => {
+    const previous = lines[lines.length - 1] || '';
+    const candidate = previous ? `${previous} ${word}` : word;
+
+    if (!previous || context.measureText(candidate).width <= width) {
+      lines[lines.length - 1] = candidate;
+      return;
+    }
+
+    if (context.measureText(word).width <= width) {
+      lines.push(word);
+      return;
+    }
+
+    let segment = '';
+    [...word].forEach(character => {
+      const next = `${segment}${character}`;
+      if (segment && context.measureText(next).width > width) {
+        lines.push(segment);
+        segment = character;
+      } else {
+        segment = next;
+      }
+    });
+    if (segment) lines.push(segment);
+  });
+
+  return lines.length ? lines : [''];
+}
+
 function drawOverlayField(context, field, previewRect, scaleX, scaleY) {
   const text = field.textContent ?? '';
   const fieldRect = field.getBoundingClientRect();
@@ -90,13 +124,28 @@ function drawOverlayField(context, field, previewRect, scaleX, scaleY) {
       : box.x + paddingLeft;
 
   context.save();
-  context.beginPath();
-  context.rect(box.x, box.y, box.width, box.height);
-  context.clip();
+  if (field.dataset.fitText !== 'debtor-name') {
+    context.beginPath();
+    context.rect(box.x, box.y, box.width, box.height);
+    context.clip();
+  }
   context.fillStyle = style.color;
   context.font = canvasFont(style, scaleX);
   context.textAlign = align;
   context.textBaseline = 'middle';
+
+  if (field.dataset.fitText === 'debtor-name' && style.whiteSpace !== 'nowrap') {
+    const lineHeight = parseFloat(style.lineHeight) * scaleY || parseFloat(style.fontSize) * scaleY * 1.05;
+    const lines = wrapCanvasText(context, text, Math.max(1, box.width - paddingLeft - paddingRight));
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+    lines.forEach((line, index) => {
+      context.fillText(line, box.x + paddingLeft, box.y + index * lineHeight);
+    });
+    context.restore();
+    return;
+  }
+
   context.fillText(text, x, box.y + box.height / 2);
   context.restore();
 }
@@ -135,4 +184,3 @@ export async function renderOfficialFormToJpeg(preview) {
     height: EXPORT_HEIGHT
   };
 }
-
