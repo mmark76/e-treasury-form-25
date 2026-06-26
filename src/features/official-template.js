@@ -12,7 +12,7 @@ const TEMPLATE_MARKUP = `
     <span class="overlay-field overlay-service-address" data-output="serviceAddress"></span>
     <span class="overlay-field overlay-service-postal" data-output="servicePostalCode"></span>
 
-    <span class="overlay-field overlay-debtor-name" data-output="debtorName"></span>
+    <span class="overlay-field overlay-debtor-name" data-output="debtorName" data-fit-text="debtor-name"></span>
     <span class="overlay-field overlay-debtor-tax-id" data-output="debtorTaxId"></span>
     <span class="overlay-field overlay-debtor-location" data-output="debtorLocation"></span>
     <span class="overlay-field overlay-postal-code" data-output="postalCode"></span>
@@ -66,7 +66,7 @@ function ensureServicePostalField() {
   if (!firstGrid) return;
 
   const label = document.createElement('label');
-  label.className = 'field';
+  label.className = 'field service-setting-field';
   label.append('Ταχυδρομικός κώδικας Υπηρεσίας');
 
   const input = document.createElement('input');
@@ -119,6 +119,47 @@ function setOutput(key, value) {
   });
 }
 
+const TEXT_FIT_MIN_FONT_SIZE = 10;
+const TEXT_FIT_STEP = 0.25;
+
+function fitSingleLineThenWrap(element, { minimumFontSize = TEXT_FIT_MIN_FONT_SIZE } = {}) {
+  if (!element) return;
+
+  element.style.removeProperty('font-size');
+  element.style.removeProperty('line-height');
+  element.style.removeProperty('overflow-wrap');
+  element.style.removeProperty('white-space');
+  element.dataset.fitWrapped = 'false';
+
+  const width = element.clientWidth;
+  if (!width) return;
+
+  const normalFontSize = parseFloat(getComputedStyle(element).fontSize);
+  if (!Number.isFinite(normalFontSize)) return;
+
+  let fontSize = normalFontSize;
+  element.style.whiteSpace = 'nowrap';
+
+  while (fontSize > minimumFontSize && element.scrollWidth > width) {
+    fontSize = Math.max(minimumFontSize, fontSize - TEXT_FIT_STEP);
+    element.style.fontSize = `${fontSize}px`;
+  }
+
+  if (element.scrollWidth <= width) return;
+
+  element.style.fontSize = `${minimumFontSize}px`;
+  element.style.lineHeight = '1.05';
+  element.style.overflowWrap = 'break-word';
+  element.style.whiteSpace = 'normal';
+  element.dataset.fitWrapped = 'true';
+}
+
+function fitOfficialTemplateText() {
+  document.querySelectorAll('[data-fit-text="debtor-name"]').forEach(element => {
+    fitSingleLineThenWrap(element);
+  });
+}
+
 function getValue(id) {
   return document.getElementById(id)?.value.trim() ?? '';
 }
@@ -128,13 +169,13 @@ function padInvoiceNumber(value) {
   return digits ? digits.slice(-5).padStart(5, '0') : '00000';
 }
 
-function splitAmount(value, minimumEuroDigits = 3) {
+function splitAmount(value) {
   const totalCents = Math.round(Math.max(0, Number(value) || 0) * 100);
   const euros = Math.floor(totalCents / 100);
   const cents = totalCents % 100;
 
   return {
-    euros: String(euros).padStart(minimumEuroDigits, '0'),
+    euros: String(euros),
     cents: String(cents).padStart(2, '0')
   };
 }
@@ -176,9 +217,9 @@ export function renderOfficialTemplate() {
     .filter(Boolean)
     .join(' - ');
 
-  const net = splitAmount(calculation.netAmount, 3);
-  const vat = splitAmount(calculation.vatAmount, 2);
-  const gross = splitAmount(calculation.grossAmount, 3);
+  const net = splitAmount(calculation.netAmount);
+  const vat = splitAmount(calculation.vatAmount);
+  const gross = splitAmount(calculation.grossAmount);
 
   const values = {
     department: getValue('department'),
@@ -211,4 +252,5 @@ export function renderOfficialTemplate() {
   };
 
   Object.entries(values).forEach(([key, value]) => setOutput(key, value));
+  fitOfficialTemplateText();
 }

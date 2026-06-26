@@ -1,27 +1,16 @@
 .app-header {
   display: flex;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
   padding: 1.4rem clamp(1rem, 3vw, 2.5rem);
-  background: #172033;
+  background: #132238;
   color: #ffffff;
 }
 
 .app-header h1 {
-  margin-bottom: 0.35rem;
-}
-
-.app-header p {
-  margin-bottom: 0;
-  color: #dce4ef;
-}
-
-.eyebrow {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
 }
 
 .header-actions {
@@ -47,12 +36,80 @@
   color: #172033;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.landing-view,
+.application-view {
+  padding: clamp(1rem, 4vw, 2.5rem);
+}
+
+.landing-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.nav-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 9rem;
+  border: 1px solid #d8c9b5;
+  border-top: 0.38rem solid var(--card-accent, #c58a1d);
+  border-radius: 8px;
+  padding: 1.1rem;
+  background: #fffaf2;
+  color: #172033;
+  box-shadow: 0 12px 26px rgba(23, 32, 51, 0.08);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.nav-card:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.nav-card-amber {
+  --card-accent: #c58a1d;
+}
+
+.nav-card-terracotta {
+  --card-accent: #b85c38;
+}
+
+.nav-card-sage {
+  --card-accent: #6f8f63;
+}
+
+.nav-card-teal {
+  --card-accent: #287f83;
+}
+
+.view-toolbar {
+  max-width: 1400px;
+  margin: 0 auto 1rem;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(340px, 0.9fr) minmax(650px, 1.4fr);
   gap: 1.5rem;
   align-items: start;
-  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .app-footer {
@@ -86,6 +143,82 @@
 
 .panel-help {
   color: #526078;
+}
+
+.invoice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.workspace[data-active-view="customers"] form,
+.workspace[data-active-view="customers"] .invoice-actions,
+.workspace[data-active-view="customers"] .invoice-archive-panel,
+.workspace[data-active-view="archive"] form,
+.workspace[data-active-view="archive"] .invoice-actions,
+.workspace[data-active-view="archive"] .customers-panel {
+  display: none;
+}
+
+.workspace[data-active-view="customers"] .editor-panel > h2,
+.workspace[data-active-view="customers"] .editor-panel > .panel-help,
+.workspace[data-active-view="archive"] .editor-panel > h2,
+.workspace[data-active-view="archive"] .editor-panel > .panel-help {
+  display: none;
+}
+
+.workspace[data-active-view="issue"] .service-setting-field,
+.workspace[data-active-view="issue"] .signature-account-fieldset,
+.workspace[data-active-view="service"] .invoice-only-field {
+  display: none;
+}
+
+.workspace[data-active-view="issue"] .customers-panel,
+.workspace[data-active-view="issue"] .invoice-archive-panel,
+.workspace[data-active-view="service"] .customers-panel,
+.workspace[data-active-view="service"] .invoice-archive-panel,
+.workspace[data-active-view="preview"] .editor-panel {
+  display: none;
+}
+
+.workspace[data-active-view="service"] .invoice-actions,
+.workspace[data-active-view="service"] form fieldset:nth-of-type(2) {
+  display: none;
+}
+
+.workspace[data-active-view="issue"],
+.workspace[data-active-view="service"] {
+  grid-template-columns: minmax(340px, 720px);
+  justify-content: center;
+}
+
+.workspace[data-active-view="customers"],
+.workspace[data-active-view="archive"] {
+  grid-template-columns: minmax(340px, 1fr);
+}
+
+.workspace[data-active-view="preview"] {
+  grid-template-columns: minmax(650px, 1fr);
+}
+
+.workspace[data-active-view="issue"] .preview-panel,
+.workspace[data-active-view="customers"] .preview-panel,
+.workspace[data-active-view="archive"] .preview-panel,
+.workspace[data-active-view="service"] .preview-panel {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: min(100%, 210mm);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.workspace[data-active-view="issue"] .preview-panel > h2,
+.workspace[data-active-view="customers"] .preview-panel > h2,
+.workspace[data-active-view="archive"] .preview-panel > h2,
+.workspace[data-active-view="service"] .preview-panel > h2 {
+  display: none;
 }
 
 fieldset {
@@ -287,6 +420,106 @@ legend {
   margin: 0 0 0.7rem;
 }
 
+.settings-dialog {
+  width: min(92vw, 28rem);
+  border: 1px solid #d7c4aa;
+  border-radius: 8px;
+  padding: 0;
+  color: #172033;
+  background: #fffaf2;
+  box-shadow: 0 24px 60px rgba(19, 34, 56, 0.28);
+}
+
+.settings-dialog::backdrop {
+  background: rgba(19, 34, 56, 0.55);
+}
+
+.settings-dialog form {
+  padding: 1.25rem;
+}
+
+.settings-form-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.settings-field {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 800;
+}
+
+.settings-dialog h2 {
+  margin: 0 0 0.5rem;
+}
+
+.settings-dialog p {
+  color: #526078;
+}
+
+body.page-font-compact {
+  font-size: 0.94rem;
+}
+
+body.page-font-large {
+  font-size: 1.1rem;
+}
+
+body.page-font-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body.page-font-arial {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body.page-theme-teal {
+  background: #eef6f5;
+  color: #102f35;
+}
+
+body.page-theme-teal .app-header {
+  background: #0f3f46;
+}
+
+body.page-theme-teal .nav-card {
+  border-color: #bdd6d4;
+  background: #f7ffff;
+  color: #102f35;
+}
+
+body.page-theme-teal .editor-panel,
+body.page-theme-teal .preview-panel,
+body.page-theme-teal .customers-panel,
+body.page-theme-teal .invoice-archive-panel,
+body.page-theme-teal .settings-dialog {
+  background: #fbffff;
+}
+
+body.page-theme-sage {
+  background: #f1f5ec;
+  color: #1f2d21;
+}
+
+body.page-theme-sage .app-header {
+  background: #263d2c;
+}
+
+body.page-theme-sage .nav-card {
+  border-color: #c9d8bf;
+  background: #fbfff7;
+  color: #1f2d21;
+}
+
+body.page-theme-sage .editor-panel,
+body.page-theme-sage .preview-panel,
+body.page-theme-sage .customers-panel,
+body.page-theme-sage .invoice-archive-panel,
+body.page-theme-sage .settings-dialog {
+  background: #fdfff9;
+}
+
 .official-form {
   position: relative;
   container-type: inline-size;
@@ -383,7 +616,8 @@ legend {
 .field-revenue-account { left: 47%; top: 92.65%; width: 32%; }
 
 @media (max-width: 1120px) {
-  .workspace {
+  .workspace,
+  .landing-nav {
     grid-template-columns: 1fr;
   }
 }
@@ -396,6 +630,15 @@ legend {
 
   .app-header {
     display: grid;
+  }
+
+  .landing-view,
+  .application-view {
+    padding: 1rem;
+  }
+
+  .nav-card {
+    min-height: 6.5rem;
   }
 
   .field-wide {

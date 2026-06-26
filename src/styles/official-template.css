@@ -105,7 +105,17 @@
 }
 .overlay-service-address { left: 32.38%; top: 16.45%; width: 38%; height: 1.74%; }
 .overlay-service-postal { left: 86.07%; top: 16.45%; width: 7%; height: 2.05%; }
-.overlay-debtor-name { left: 33.77%; top: 20.43%; width: 16%; height: 2.04%; font-size: 12px; font-size: 2.35cqw; }
+.overlay-debtor-name {
+  left: 26%;
+  top: 20.75%;
+  width: 39%;
+  height: 2.04%;
+  align-items: flex-start;
+  overflow: visible;
+  font-size: 12px;
+  font-size: 2.35cqw;
+  white-space: nowrap;
+}
 .overlay-debtor-tax-id { left: 82.96%; top: 21.06%; width: 9%; height: 1.6%; font-size: 9px; font-size: 1.95cqw; }
 .overlay-debtor-location { left: 29.21%; top: 23.49%; width: 25%; height: 2.04%; font-size: 12px; font-size: 2.35cqw; }
 .overlay-postal-code { left: 70.26%; top: 23.98%; width: 9%; height: 1.6%; font-size: 9px; font-size: 1.95cqw; }

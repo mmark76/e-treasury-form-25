@@ -120,6 +120,101 @@ function initializeDateFields() {
   initializeDateField('signDate');
 }
 
+function initializeViewShell({ renderOfficialTemplate }) {
+  const landingView = document.getElementById('landing-view');
+  const applicationView = document.getElementById('application-view');
+  const workspace = document.querySelector('.workspace');
+  const viewButtons = document.querySelectorAll('[data-view-target]');
+  if (!landingView || !applicationView || !workspace) return;
+
+  function focusFirstControl(container) {
+    const target = container.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    target?.focus({ preventScroll: true });
+  }
+
+  function showView(view, { moveFocus = true } = {}) {
+    if (view === 'home') {
+      landingView.hidden = false;
+      applicationView.hidden = true;
+      workspace.dataset.activeView = 'issue';
+      document.querySelectorAll('.nav-card').forEach(button => button.removeAttribute('aria-current'));
+      if (moveFocus) focusFirstControl(landingView);
+      return;
+    }
+
+    workspace.dataset.activeView = view;
+    landingView.hidden = true;
+    applicationView.hidden = false;
+    document.querySelectorAll('.nav-card').forEach(button => {
+      if (button.dataset.viewTarget === view) {
+        button.setAttribute('aria-current', 'page');
+      } else {
+        button.removeAttribute('aria-current');
+      }
+    });
+    renderOfficialTemplate();
+    if (moveFocus) focusFirstControl(applicationView);
+  }
+
+  viewButtons.forEach(button => {
+    button.addEventListener('click', () => showView(button.dataset.viewTarget));
+  });
+
+  showView('home', { moveFocus: false });
+}
+
+function initializePageSettingsDialog() {
+  const button = document.getElementById('page-settings');
+  const dialog = document.getElementById('page-settings-dialog');
+  const colorTheme = document.getElementById('page-color-theme');
+  const fontSize = document.getElementById('page-font-size');
+  const fontFamily = document.getElementById('page-font-family');
+  const resetButton = document.getElementById('reset-page-appearance');
+  if (!button || !dialog) return;
+
+  function applyAppearanceSettings() {
+    document.body.classList.remove(
+      'page-theme-teal',
+      'page-theme-sage',
+      'page-font-compact',
+      'page-font-large',
+      'page-font-serif',
+      'page-font-arial'
+    );
+
+    if (colorTheme?.value === 'teal') document.body.classList.add('page-theme-teal');
+    if (colorTheme?.value === 'sage') document.body.classList.add('page-theme-sage');
+    if (fontSize?.value === 'compact') document.body.classList.add('page-font-compact');
+    if (fontSize?.value === 'large') document.body.classList.add('page-font-large');
+    if (fontFamily?.value === 'serif') document.body.classList.add('page-font-serif');
+    if (fontFamily?.value === 'arial') document.body.classList.add('page-font-arial');
+  }
+
+  [colorTheme, fontSize, fontFamily].forEach(select => {
+    select?.addEventListener('change', applyAppearanceSettings);
+  });
+
+  resetButton?.addEventListener('click', () => {
+    if (colorTheme) colorTheme.value = 'warm';
+    if (fontSize) fontSize.value = 'standard';
+    if (fontFamily) fontFamily.value = 'system';
+    applyAppearanceSettings();
+  });
+
+  button.addEventListener('click', () => {
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+    dialog.querySelector('select, button')?.focus({ preventScroll: true });
+  });
+
+  dialog.addEventListener('close', () => {
+    button.focus({ preventScroll: true });
+  });
+}
+
 function initializeApp() {
   const form = document.getElementById('invoice-form');
   const clearButton = document.getElementById('clear-form');
@@ -178,6 +273,8 @@ function initializeApp() {
   });
 
   window.addEventListener('beforeprint', renderOfficialTemplate);
+  initializeViewShell({ renderOfficialTemplate });
+  initializePageSettingsDialog();
 }
 
 initializeApp();

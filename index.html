@@ -3,53 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>E‑Treasury Form 25</title>
+  <title>e-Treasury Form 25</title>
   <link rel="stylesheet" href="src/styles/base.css">
   <link rel="stylesheet" href="src/styles/app.css">
   <link rel="stylesheet" href="src/styles/print.css" media="print">
 </head>
 <body>
   <header class="app-header no-print">
-    <div>
-      <p class="eyebrow">Κυπριακή Δημοκρατία</p>
-      <h1>E‑Treasury Form 25</h1>
-      <p>Χειροκίνητη συμπλήρωση, αποθηκευμένα πρότυπα και εκτύπωση του επίσημου εντύπου Γ.Λ.25.</p>
-    </div>
+    <h1>e-Treasury Form 25</h1>
     <div class="header-actions">
-      <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
-      <button id="print-form" class="button button-primary" type="button">Εκτύπωση / PDF</button>
-      <button id="download-pdf" class="button button-primary" type="button">Λήψη PDF</button>
+      <button id="page-settings" class="button button-secondary" type="button" aria-haspopup="dialog">Ρυθμίσεις Σελίδας</button>
     </div>
   </header>
 
-  <main class="workspace">
+  <main>
+    <section id="landing-view" class="landing-view no-print" data-app-view="home" aria-labelledby="landing-title">
+      <h2 id="landing-title" class="visually-hidden">Κύρια πλοήγηση</h2>
+      <nav class="landing-nav" aria-label="Κύρια πλοήγηση">
+        <button class="nav-card nav-card-amber" type="button" data-view-target="issue">Έκδοση Τιμολογίου</button>
+        <button class="nav-card nav-card-terracotta" type="button" data-view-target="service">Ρυθμίσεις Τμήματος / Υπηρεσίας</button>
+        <button class="nav-card nav-card-sage" type="button" data-view-target="customers">Αρχείο Οφειλετών / Πελατών</button>
+        <button class="nav-card nav-card-teal" type="button" data-view-target="archive">Αρχείο Τιμολογίων</button>
+        <button class="nav-card nav-card-amber" type="button" data-view-target="preview">Προβολή Τιμολογίου</button>
+      </nav>
+    </section>
+
+    <section id="application-view" class="application-view" data-app-view="workspace" hidden>
+      <div class="view-toolbar no-print">
+        <button class="button button-secondary" type="button" data-view-target="home">Επιστροφή στην αρχική</button>
+      </div>
+
+      <div class="workspace" data-active-view="issue">
     <section class="editor-panel no-print" aria-labelledby="editor-title">
       <h2 id="editor-title">Στοιχεία εντύπου</h2>
       <p class="panel-help">Σε κάθε πεδίο μπορείς να γράψεις νέα τιμή, να την αποθηκεύσεις ως πρότυπο ή να επιλέξεις παλαιότερη.</p>
 
+      <div class="invoice-actions">
+        <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
+        <button id="print-form" class="button button-primary" type="button">Εκτύπωση / PDF</button>
+        <button id="download-pdf" class="button button-primary" type="button">Λήψη PDF</button>
+      </div>
+
       <form id="invoice-form" autocomplete="off">
         <fieldset>
-          <legend>Υπηρεσία και έκδοση</legend>
+          <legend>Στοιχεία έκδοσης</legend>
           <div class="form-grid">
-            <label class="field field-wide">Τμήμα / Υπηρεσία
+            <label class="field field-wide service-setting-field">Τμήμα / Υπηρεσία
               <input id="department" data-template-key="department" value="ΚΛΑΔΟΣ ΔΙΑΧΕΙΡΙΣΗΣ ΧΩΡΟΥ ΚΡΑΤΙΚΗΣ ΕΚΘΕΣΗΣ / ΥΕ / ΥΕΕ&Β">
             </label>
-            <label class="field">Κωδικός Κεφαλαίου
+            <label class="field service-setting-field">Κωδικός Κεφαλαίου
               <input id="chapterCode" data-template-key="chapterCode" value="1401100">
             </label>
-            <label class="field">Αρ. Μητρώου Φ.Π.Α.
+            <label class="field service-setting-field">Αρ. Μητρώου Φ.Π.Α.
               <input id="vatRegistration" data-template-key="vatRegistration" value="9000158T">
             </label>
-            <label class="field">Αριθμός εντύπου
+            <label class="field invoice-only-field">Αριθμός τιμολογίου
               <input id="invoiceNumber" data-template-key="invoiceNumber" inputmode="numeric" placeholder="00000">
             </label>
-            <label class="field issue-date-field">Ημερομηνία έκδοσης
+            <label class="field issue-date-field invoice-only-field">Ημερομηνία έκδοσης
               <span class="date-entry">
                 <input id="issueDate" data-template-key="issueDate" inputmode="numeric" maxlength="10" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy" required>
                 <input class="date-picker-proxy" type="date" aria-hidden="true" tabindex="-1">
               </span>
             </label>
-            <label class="field field-wide">Διεύθυνση Υπηρεσίας
+            <label class="field field-wide service-setting-field">Διεύθυνση Υπηρεσίας
               <input id="serviceAddress" data-template-key="serviceAddress" value="ΑΝΔΡΕΑ ΑΡΑΟΥΖΟΥ 6, ΛΕΥΚΩΣΙΑ">
             </label>
           </div>
@@ -58,22 +75,22 @@
         <fieldset>
           <legend>Οφειλέτης</legend>
           <div class="form-grid">
-            <label class="field field-wide">Όνομα οφειλέτη
+            <label class="field field-wide invoice-only-field">Όνομα οφειλέτη
               <input id="debtorName" data-template-key="debtorName" placeholder="Ονοματεπώνυμο ή οργανισμός">
             </label>
-            <label class="field">Αρ. Φορολογικής Ταυτότητας
+            <label class="field invoice-only-field">Αρ. Φορολογικής Ταυτότητας
               <input id="debtorTaxId" data-template-key="debtorTaxId">
             </label>
-            <label class="field field-wide">Διεύθυνση
+            <label class="field field-wide invoice-only-field">Διεύθυνση
               <input id="debtorAddress" data-template-key="debtorAddress">
             </label>
-            <label class="field">Ταχυδρομικός κώδικας
+            <label class="field invoice-only-field">Ταχυδρομικός κώδικας
               <input id="postalCode" data-template-key="postalCode" inputmode="numeric">
             </label>
-            <label class="field">Τηλέφωνο
+            <label class="field invoice-only-field">Τηλέφωνο
               <input id="phone" data-template-key="phone" inputmode="tel">
             </label>
-            <label class="field field-wide">Περίπτερο / Χώρος
+            <label class="field field-wide invoice-only-field">Περίπτερο / Χώρος
               <input id="spaceName" data-template-key="spaceName" placeholder="Περίπτερο ή χώρος κατανάλωσης">
             </label>
           </div>
@@ -82,19 +99,19 @@
         <fieldset>
           <legend>Χρέωση</legend>
           <div class="form-grid">
-            <label class="field field-wide">Περιγραφή αγαθών / υπηρεσιών
+            <label class="field field-wide invoice-only-field">Περιγραφή αγαθών / υπηρεσιών
               <textarea id="description" data-template-key="description" rows="2">ΚΑΤΑΝΑΛΩΣΗ ΗΛΕΚΤΡΙΚΟΥ ΡΕΥΜΑΤΟΣ</textarea>
             </label>
-            <label class="field">Μήνας / Περίοδος
+            <label class="field invoice-only-field">Μήνας / Περίοδος
               <input id="billingPeriod" data-template-key="billingPeriod" placeholder="ΜΑΪΟΣ 2026">
             </label>
-            <label class="field">Καθαρό ποσό (€)
+            <label class="field invoice-only-field">Καθαρό ποσό (€)
               <input id="netAmount" data-template-key="netAmount" type="number" min="0" step="0.01" value="0.00">
             </label>
-            <label class="field">Συντελεστής Φ.Π.Α. (%)
+            <label class="field invoice-default-field">Συντελεστής Φ.Π.Α. (%)
               <input id="vatRate" data-template-key="vatRate" type="number" min="0" step="0.01" value="19">
             </label>
-            <label class="field">Τύπος εξόφλησης
+            <label class="field invoice-only-field">Τύπος εξόφλησης
               <select id="paymentType" data-template-key="paymentType">
                 <option>Πλήρης εξόφληση</option>
                 <option>Μερική εξόφληση</option>
@@ -104,19 +121,19 @@
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset class="signature-account-fieldset">
           <legend>Υπογραφή και λογαριασμός</legend>
           <div class="form-grid">
-            <label class="field">Ονοματεπώνυμο
+            <label class="field invoice-default-field">Ονοματεπώνυμο
               <input id="signatoryName" data-template-key="signatoryName" value="ΜΑΡΚΕΛΛΟΣ ΜΑΡΚΙΔΗΣ">
             </label>
-            <label class="field">Ημερομηνία
+            <label class="field invoice-only-field">Ημερομηνία
               <span class="date-entry">
                 <input id="signDate" data-template-key="signDate" inputmode="numeric" maxlength="10" pattern="\d{2}/\d{2}/\d{4}" placeholder="dd/mm/yyyy">
                 <input class="date-picker-proxy" type="date" aria-hidden="true" tabindex="-1">
               </span>
             </label>
-            <label class="field field-wide">Λογαριασμός Εσόδων Προϋπολογισμού
+            <label class="field field-wide service-setting-field">Λογαριασμός Εσόδων Προϋπολογισμού
               <input id="revenueAccount" data-template-key="revenueAccount">
             </label>
           </div>
@@ -179,11 +196,44 @@
         </div>
       </article>
     </section>
+      </div>
+    </section>
   </main>
 
   <footer class="app-footer no-print">
     <a href="https://markellosecosystem.com/" target="_blank" rel="noopener noreferrer">Markellos Ecosystem</a>
   </footer>
+
+  <dialog id="page-settings-dialog" class="settings-dialog no-print" aria-labelledby="page-settings-title">
+    <form method="dialog">
+      <h2 id="page-settings-title">Ρυθμίσεις Σελίδας</h2>
+      <div class="settings-form-grid">
+        <label class="settings-field">Χρώματα
+          <select id="page-color-theme" data-page-setting="colorTheme">
+            <option value="warm">Ζεστό υπηρεσιακό</option>
+            <option value="teal">Πετρόλ</option>
+            <option value="sage">Φασκόμηλο</option>
+          </select>
+        </label>
+        <label class="settings-field">Μέγεθος γραμμάτων
+          <select id="page-font-size" data-page-setting="fontSize">
+            <option value="standard">Κανονικό</option>
+            <option value="large">Μεγάλο</option>
+            <option value="compact">Συμπαγές</option>
+          </select>
+        </label>
+        <label class="settings-field">Γραμματοσειρά
+          <select id="page-font-family" data-page-setting="fontFamily">
+            <option value="system">System UI</option>
+            <option value="serif">Serif</option>
+            <option value="arial">Arial</option>
+          </select>
+        </label>
+      </div>
+      <button class="button button-secondary" type="button" id="reset-page-appearance">Επαναφορά</button>
+      <button class="button button-primary" type="submit">Κλείσιμο</button>
+    </form>
+  </dialog>
 
   <script type="module" src="src/app.js"></script>
 </body>
