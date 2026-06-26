@@ -6,6 +6,7 @@ const TEENS = {
 };
 const TENS = ['', '', 'ΕΙΚΟΣΙ', 'ΤΡΙΑΝΤΑ', 'ΣΑΡΑΝΤΑ', 'ΠΕΝΗΝΤΑ', 'ΕΞΗΝΤΑ', 'ΕΒΔΟΜΗΝΤΑ', 'ΟΓΔΟΝΤΑ', 'ΕΝΕΝΗΝΤΑ'];
 const HUNDREDS = ['', 'ΕΚΑΤΟΝ', 'ΔΙΑΚΟΣΙΑ', 'ΤΡΙΑΚΟΣΙΑ', 'ΤΕΤΡΑΚΟΣΙΑ', 'ΠΕΝΤΑΚΟΣΙΑ', 'ΕΞΑΚΟΣΙΑ', 'ΕΠΤΑΚΟΣΙΑ', 'ΟΚΤΑΚΟΣΙΑ', 'ΕΝΝΙΑΚΟΣΙΑ'];
+const FEMININE_HUNDREDS = ['', 'ΕΚΑΤΟΝ', 'ΔΙΑΚΟΣΙΕΣ', 'ΤΡΙΑΚΟΣΙΕΣ', 'ΤΕΤΡΑΚΟΣΙΕΣ', 'ΠΕΝΤΑΚΟΣΙΕΣ', 'ΕΞΑΚΟΣΙΕΣ', 'ΕΠΤΑΚΟΣΙΕΣ', 'ΟΚΤΑΚΟΣΙΕΣ', 'ΕΝΝΙΑΚΟΣΙΕΣ'];
 
 function underThousand(number, feminine = false) {
   if (number === 0) return '';
@@ -15,7 +16,8 @@ function underThousand(number, feminine = false) {
   const remainder = number % 100;
 
   if (hundreds) {
-    words.push(number === 100 ? 'ΕΚΑΤΟ' : HUNDREDS[hundreds]);
+    const hundredsWords = feminine ? FEMININE_HUNDREDS : HUNDREDS;
+    words.push(number === 100 ? 'ΕΚΑΤΟ' : hundredsWords[hundreds]);
   }
 
   if (remainder >= 10 && remainder <= 19) {
