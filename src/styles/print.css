@@ -5,6 +5,7 @@
 
 html,
 body {
+  display: block;
   width: 210mm;
   min-width: 210mm;
   margin: 0;

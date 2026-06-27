@@ -221,6 +221,7 @@ export function createCustomersPanel({ form, renderOfficialTemplate, onFormUpdat
     customers = nextCustomers;
     saveCustomers(customers);
     renderOptions();
+    window.dispatchEvent(new CustomEvent('customers:updated'));
   }
 
   searchInput.addEventListener('input', renderOptions);

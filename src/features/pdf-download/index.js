@@ -2,11 +2,11 @@ import { downloadOfficialPdf } from './download.js';
 
 export { downloadOfficialPdf, filenameFromCurrentForm } from './download.js';
 
-export function initializePdfDownload({ button, form, renderOfficialTemplate }) {
+export function initializePdfDownload({ button, form, renderOfficialTemplate, shouldValidate = () => true }) {
   if (!button) return;
 
   button.addEventListener('click', async () => {
-    if (!form.reportValidity()) return;
+    if (shouldValidate() && !form.reportValidity()) return;
 
     const originalText = button.textContent;
     button.disabled = true;
@@ -24,4 +24,3 @@ export function initializePdfDownload({ button, form, renderOfficialTemplate }) 
     }
   });
 }
-

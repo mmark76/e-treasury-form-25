@@ -119,6 +119,32 @@ function setOutput(key, value) {
   });
 }
 
+const SERVICE_PREVIEW_OUTPUTS = new Set([
+  'department',
+  'chapterCode',
+  'vatRegistration',
+  'serviceAddress',
+  'servicePostalCode',
+  'revenueAccount'
+]);
+
+export function renderBlankOfficialTemplate() {
+  ensureOfficialPreview();
+
+  document.querySelectorAll('[data-output]').forEach(element => {
+    const key = element.dataset.output;
+    element.textContent = SERVICE_PREVIEW_OUTPUTS.has(key) ? getValue(key) : '';
+  });
+
+  document.querySelectorAll('[data-fit-text]').forEach(element => {
+    element.style.removeProperty('font-size');
+    element.style.removeProperty('line-height');
+    element.style.removeProperty('overflow-wrap');
+    element.style.removeProperty('white-space');
+    element.dataset.fitWrapped = 'false';
+  });
+}
+
 const TEXT_FIT_MIN_FONT_SIZE = 10;
 const TEXT_FIT_STEP = 0.25;
 

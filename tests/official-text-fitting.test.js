@@ -70,9 +70,7 @@ async function setInvoiceValue(frame, id, value) {
 
 const frame = await loadAppFrame();
 const app = frame.contentDocument;
-const previewCard = [...app.querySelectorAll('.nav-card')]
-  .find(card => card.dataset.viewTarget === 'preview');
-previewCard.click();
+app.querySelector('[data-view-target="debtor"]').click();
 await nextFrame(frame);
 
 const debtorName = app.querySelector('.overlay-debtor-name');

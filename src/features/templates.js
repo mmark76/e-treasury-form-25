@@ -8,7 +8,6 @@ const DEFAULT_TEMPLATES = {
   vatRegistration: ['9000158T'],
   serviceAddress: ['ΑΝΔΡΕΑ ΑΡΑΟΥΖΟΥ 6, ΛΕΥΚΩΣΙΑ'],
   description: ['ΚΑΤΑΝΑΛΩΣΗ ΗΛΕΚΤΡΙΚΟΥ ΡΕΥΜΑΤΟΣ'],
-  vatRate: ['19'],
   signatoryName: ['ΜΑΡΚΕΛΛΟΣ ΜΑΡΚΙΔΗΣ'],
   paymentType: ['Πλήρης εξόφληση', 'Μερική εξόφληση', 'Προκαταβολή']
 };

@@ -1,8 +1,10 @@
 import { initializeTemplateManager } from './features/templates.js';
-import { initializeOfficialTemplateLayout, renderOfficialTemplate } from './features/official-template.js';
+import { initializeOfficialTemplateLayout, renderBlankOfficialTemplate, renderOfficialTemplate } from './features/official-template.js';
 import { initializePdfDownload } from './features/pdf-download/index.js';
 import { initializeCustomersFeature } from './features/customers/index.js';
+import { readCustomers } from './features/customers/storage.js';
 import { initializeInvoiceArchive } from './features/invoice-archive/index.js';
+import { formatInvoiceSequenceNumber, readNextInvoiceNumber } from './features/invoice-archive/storage.js';
 import { getFormValues } from './shared/form-state.js';
 import { readJson, writeJson, removeStoredValue } from './shared/storage.js';
 
@@ -120,12 +122,22 @@ function initializeDateFields() {
   initializeDateField('signDate');
 }
 
-function initializeViewShell({ renderOfficialTemplate }) {
+function initializeViewShell({ renderPreview }) {
   const landingView = document.getElementById('landing-view');
   const applicationView = document.getElementById('application-view');
   const workspace = document.querySelector('.workspace');
+  const editorTitle = document.getElementById('editor-title');
   const viewButtons = document.querySelectorAll('[data-view-target]');
+  const closeButton = document.querySelector('[data-view-close]');
   if (!landingView || !applicationView || !workspace) return;
+
+  const viewTitles = {
+    numbering: 'Αύξων Αριθμός Τιμολογίου',
+    service: 'Στοιχεία Τμήματος / Υπηρεσίας',
+    debtor: 'Στοιχεία Οφειλέτη / Πελάτη',
+    customers: 'Αρχείο Οφειλετών / Πελατών',
+    archive: 'Αρχείο Τιμολογίων'
+  };
 
   function focusFirstControl(container) {
     const target = container.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -134,17 +146,17 @@ function initializeViewShell({ renderOfficialTemplate }) {
 
   function showView(view, { moveFocus = true } = {}) {
     if (view === 'home') {
-      landingView.hidden = false;
-      applicationView.hidden = true;
-      workspace.dataset.activeView = 'issue';
+      applicationView.hidden = false;
+      workspace.dataset.activeView = 'home';
       document.querySelectorAll('.nav-card').forEach(button => button.removeAttribute('aria-current'));
+      renderPreview();
       if (moveFocus) focusFirstControl(landingView);
       return;
     }
 
     workspace.dataset.activeView = view;
-    landingView.hidden = true;
     applicationView.hidden = false;
+    if (editorTitle) editorTitle.textContent = viewTitles[view] ?? 'Στοιχεία εντύπου';
     document.querySelectorAll('.nav-card').forEach(button => {
       if (button.dataset.viewTarget === view) {
         button.setAttribute('aria-current', 'page');
@@ -152,13 +164,18 @@ function initializeViewShell({ renderOfficialTemplate }) {
         button.removeAttribute('aria-current');
       }
     });
-    renderOfficialTemplate();
-    if (moveFocus) focusFirstControl(applicationView);
+    renderPreview();
+    if (moveFocus) focusFirstControl(document.querySelector('.editor-panel') ?? applicationView);
   }
 
   viewButtons.forEach(button => {
-    button.addEventListener('click', () => showView(button.dataset.viewTarget));
+    button.addEventListener('click', () => {
+      const targetView = button.dataset.viewTarget;
+      const isAlreadyActive = workspace.dataset.activeView === targetView;
+      showView(isAlreadyActive ? 'home' : targetView);
+    });
   });
+  closeButton?.addEventListener('click', () => showView('home'));
 
   showView('home', { moveFocus: false });
 }
@@ -215,11 +232,82 @@ function initializePageSettingsDialog() {
   });
 }
 
+function updateInvoiceNumberDisplay() {
+  const nextNumber = document.getElementById('next-invoice-number');
+  const currentNumber = document.getElementById('current-invoice-number');
+  const invoiceNumber = document.getElementById('invoiceNumber')?.value.trim() ?? '';
+
+  if (nextNumber) nextNumber.textContent = formatInvoiceSequenceNumber(readNextInvoiceNumber());
+  if (currentNumber) currentNumber.textContent = invoiceNumber || '-';
+}
+
+function initializeCurrentCustomerSelector({ form, renderInvoicePreview, onFormUpdated }) {
+  const select = document.getElementById('currentCustomerSelect');
+  if (!select) return;
+
+  function customerLabel(customer) {
+    return [customer.debtorName, customer.debtorTaxId].filter(Boolean).join(' - ') || customer.id;
+  }
+
+  function renderOptions() {
+    const selectedValue = select.value;
+    select.replaceChildren(new Option('Επιλογή οφειλέτη / πελάτη...', ''));
+    readCustomers().forEach(customer => {
+      select.append(new Option(customerLabel(customer), customer.id));
+    });
+    select.value = [...select.options].some(option => option.value === selectedValue) ? selectedValue : '';
+  }
+
+  select.addEventListener('change', () => {
+    const customer = readCustomers().find(saved => saved.id === select.value);
+    if (!customer) return;
+
+    form.dataset.customerId = customer.id || '';
+    ['debtorName', 'debtorTaxId', 'debtorAddress', 'postalCode', 'phone'].forEach(id => {
+      const field = form.querySelector(`#${CSS.escape(id)}`);
+      if (field) field.value = customer[id] ?? '';
+    });
+    renderInvoicePreview();
+    onFormUpdated(form);
+  });
+
+  window.addEventListener('customers:updated', renderOptions);
+  renderOptions();
+}
+
 function initializeApp() {
   const form = document.getElementById('invoice-form');
   const clearButton = document.getElementById('clear-form');
   const printButton = document.getElementById('print-form');
   const downloadPdfButton = document.getElementById('download-pdf');
+  const workspace = document.querySelector('.workspace');
+  let previewHasInvoiceData = false;
+
+  function isHomeView() {
+    return workspace?.dataset.activeView === 'home';
+  }
+
+  function renderCurrentPreview() {
+    if (!previewHasInvoiceData) {
+      renderBlankOfficialTemplate();
+    } else {
+      renderOfficialTemplate();
+    }
+  }
+
+  function renderInvoicePreview() {
+    previewHasInvoiceData = true;
+    renderOfficialTemplate();
+    updateInvoiceNumberDisplay();
+  }
+
+  function inputBelongsToInvoicePreview(target) {
+    if (!(target instanceof Element)) return true;
+    if (workspace?.dataset.activeView === 'service') {
+      return !target.closest('.service-setting-field, .invoice-default-field');
+    }
+    return true;
+  }
 
   initializeOfficialTemplateLayout();
   setAutomaticDefaults();
@@ -227,26 +315,42 @@ function initializeApp() {
   setAutomaticDefaults();
   initializeTemplateManager();
   initializeDateFields();
+
+  function handleFormUpdated(updatedForm) {
+    saveDraft(updatedForm);
+    updateInvoiceNumberDisplay();
+  }
+
   initializeCustomersFeature({
     form,
-    renderOfficialTemplate,
-    onFormUpdated: saveDraft
+    renderOfficialTemplate: renderInvoicePreview,
+    onFormUpdated: handleFormUpdated
   });
   initializeInvoiceArchive({
     form,
-    renderOfficialTemplate,
-    onFormUpdated: saveDraft
+    renderOfficialTemplate: renderInvoicePreview,
+    onFormUpdated: handleFormUpdated
   });
-  renderOfficialTemplate();
+  initializeCurrentCustomerSelector({
+    form,
+    renderInvoicePreview,
+    onFormUpdated: handleFormUpdated
+  });
+  renderCurrentPreview();
+  updateInvoiceNumberDisplay();
 
-  form.addEventListener('input', () => {
+  form.addEventListener('input', event => {
+    if (inputBelongsToInvoicePreview(event.target)) previewHasInvoiceData = true;
     saveDraft(form);
-    renderOfficialTemplate();
+    updateInvoiceNumberDisplay();
+    renderCurrentPreview();
   });
 
-  form.addEventListener('change', () => {
+  form.addEventListener('change', event => {
+    if (inputBelongsToInvoicePreview(event.target)) previewHasInvoiceData = true;
     saveDraft(form);
-    renderOfficialTemplate();
+    updateInvoiceNumberDisplay();
+    renderCurrentPreview();
   });
 
   clearButton.addEventListener('click', () => {
@@ -257,23 +361,27 @@ function initializeApp() {
     form.reset();
     setAutomaticDefaults();
     saveDraft(form);
-    renderOfficialTemplate();
+    previewHasInvoiceData = false;
+    updateInvoiceNumberDisplay();
+    renderCurrentPreview();
   });
 
   printButton.addEventListener('click', () => {
-    if (!form.reportValidity()) return;
-    renderOfficialTemplate();
+    if (!isHomeView() && !form.reportValidity()) return;
+    renderCurrentPreview();
     window.print();
   });
 
   initializePdfDownload({
     button: downloadPdfButton,
     form,
-    renderOfficialTemplate
+    renderOfficialTemplate: renderCurrentPreview,
+    shouldValidate: () => !isHomeView()
   });
 
-  window.addEventListener('beforeprint', renderOfficialTemplate);
-  initializeViewShell({ renderOfficialTemplate });
+  window.addEventListener('beforeprint', renderCurrentPreview);
+  window.addEventListener('invoice-archive:updated', updateInvoiceNumberDisplay);
+  initializeViewShell({ renderPreview: renderCurrentPreview });
   initializePageSettingsDialog();
 }
 

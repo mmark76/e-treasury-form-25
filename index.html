@@ -17,35 +17,43 @@
   </header>
 
   <main>
-    <section id="landing-view" class="landing-view no-print" data-app-view="home" aria-labelledby="landing-title">
+    <section id="application-view" class="application-view" data-app-view="workspace">
+      <div class="workspace" data-active-view="home">
+    <aside id="landing-view" class="landing-view no-print" data-app-view="home" aria-labelledby="landing-title">
       <h2 id="landing-title" class="visually-hidden">Κύρια πλοήγηση</h2>
       <nav class="landing-nav" aria-label="Κύρια πλοήγηση">
-        <button class="nav-card nav-card-amber" type="button" data-view-target="issue">Έκδοση Τιμολογίου</button>
-        <button class="nav-card nav-card-terracotta" type="button" data-view-target="service">Ρυθμίσεις Τμήματος / Υπηρεσίας</button>
-        <button class="nav-card nav-card-sage" type="button" data-view-target="customers">Αρχείο Οφειλετών / Πελατών</button>
-        <button class="nav-card nav-card-teal" type="button" data-view-target="archive">Αρχείο Τιμολογίων</button>
-        <button class="nav-card nav-card-amber" type="button" data-view-target="preview">Προβολή Τιμολογίου</button>
+        <button class="nav-card nav-card-amber" type="button" data-view-target="numbering">Αύξων Αριθμός Τιμολογίου</button>
+        <button class="nav-card nav-card-sage" type="button" data-view-target="service">Στοιχεία Τμήματος / Υπηρεσίας</button>
+        <button class="nav-card nav-card-terracotta" type="button" data-view-target="debtor">Στοιχεία Οφειλέτη / Πελάτη</button>
+        <button class="nav-card nav-card-teal" type="button" data-view-target="customers">Αρχείο Οφειλετών / Πελατών</button>
+        <button class="nav-card nav-card-amber" type="button" data-view-target="archive">Αρχείο Τιμολογίων</button>
       </nav>
-    </section>
+    </aside>
 
-    <section id="application-view" class="application-view" data-app-view="workspace" hidden>
-      <div class="view-toolbar no-print">
-        <button class="button button-secondary" type="button" data-view-target="home">Επιστροφή στην αρχική</button>
-      </div>
-
-      <div class="workspace" data-active-view="issue">
     <section class="editor-panel no-print" aria-labelledby="editor-title">
-      <h2 id="editor-title">Στοιχεία εντύπου</h2>
+      <div class="editor-panel-header">
+        <h2 id="editor-title">Στοιχεία εντύπου</h2>
+        <button class="panel-close-button" type="button" data-view-close aria-label="Κλείσιμο πρόσθετης στήλης">&times;</button>
+      </div>
       <p class="panel-help">Σε κάθε πεδίο μπορείς να γράψεις νέα τιμή, να την αποθηκεύσεις ως πρότυπο ή να επιλέξεις παλαιότερη.</p>
 
-      <div class="invoice-actions">
-        <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
-        <button id="print-form" class="button button-primary" type="button">Εκτύπωση / PDF</button>
-        <button id="download-pdf" class="button button-primary" type="button">Λήψη PDF</button>
-      </div>
-
       <form id="invoice-form" autocomplete="off">
-        <fieldset>
+        <section class="numbering-panel" aria-labelledby="numbering-title">
+          <h3 id="numbering-title">Αυτόματη αρίθμηση</h3>
+          <dl class="numbering-summary">
+            <div>
+              <dt>Επόμενος διαθέσιμος αριθμός</dt>
+              <dd id="next-invoice-number">00001</dd>
+            </div>
+            <div>
+              <dt>Αριθμός τρέχοντος τιμολογίου</dt>
+              <dd id="current-invoice-number">-</dd>
+            </div>
+          </dl>
+          <p class="feature-help">Ο αριθμός δημιουργείται αυτόματα κατά την επιτυχή καταχώριση και δεν τροποποιείται χειροκίνητα.</p>
+        </section>
+
+        <fieldset class="issue-details-fieldset">
           <legend>Στοιχεία έκδοσης</legend>
           <div class="form-grid">
             <label class="field field-wide service-setting-field">Τμήμα / Υπηρεσία
@@ -57,8 +65,8 @@
             <label class="field service-setting-field">Αρ. Μητρώου Φ.Π.Α.
               <input id="vatRegistration" data-template-key="vatRegistration" value="9000158T">
             </label>
-            <label class="field invoice-only-field">Αριθμός τιμολογίου
-              <input id="invoiceNumber" data-template-key="invoiceNumber" inputmode="numeric" placeholder="00000">
+            <label class="field invoice-only-field numbering-field">Αριθμός τιμολογίου
+              <input id="invoiceNumber" inputmode="numeric" placeholder="00000" readonly aria-describedby="numbering-title">
             </label>
             <label class="field issue-date-field invoice-only-field">Ημερομηνία έκδοσης
               <span class="date-entry">
@@ -72,9 +80,14 @@
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset class="debtor-fieldset">
           <legend>Οφειλέτης</legend>
           <div class="form-grid">
+            <label class="field field-wide invoice-only-field">Επιλογή από αρχείο
+              <select id="currentCustomerSelect" aria-label="Επιλογή οφειλέτη ή πελάτη για το τρέχον τιμολόγιο">
+                <option value="">Επιλογή οφειλέτη / πελάτη...</option>
+              </select>
+            </label>
             <label class="field field-wide invoice-only-field">Όνομα οφειλέτη
               <input id="debtorName" data-template-key="debtorName" placeholder="Ονοματεπώνυμο ή οργανισμός">
             </label>
@@ -96,7 +109,7 @@
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset class="charge-fieldset">
           <legend>Χρέωση</legend>
           <div class="form-grid">
             <label class="field field-wide invoice-only-field">Περιγραφή αγαθών / υπηρεσιών
@@ -108,8 +121,8 @@
             <label class="field invoice-only-field">Καθαρό ποσό (€)
               <input id="netAmount" data-template-key="netAmount" type="number" min="0" step="0.01" value="0.00">
             </label>
-            <label class="field invoice-default-field">Συντελεστής Φ.Π.Α. (%)
-              <input id="vatRate" data-template-key="vatRate" type="number" min="0" step="0.01" value="19">
+            <label class="field invoice-only-field">Συντελεστής Φ.Π.Α. (%)
+              <input id="vatRate" type="number" min="0" step="0.01" value="19">
             </label>
             <label class="field invoice-only-field">Τύπος εξόφλησης
               <select id="paymentType" data-template-key="paymentType">
@@ -142,6 +155,11 @@
     </section>
 
     <section class="preview-panel" aria-labelledby="preview-title">
+      <div class="invoice-actions no-print" aria-label="Ενέργειες τιμολογίου">
+        <button id="clear-form" class="button button-secondary" type="button">Καθαρισμός</button>
+        <button id="print-form" class="button button-primary" type="button">Εκτύπωση / PDF</button>
+        <button id="download-pdf" class="button button-primary" type="button">Λήψη PDF</button>
+      </div>
       <h2 id="preview-title" class="no-print">Προεπισκόπηση επίσημου εντύπου</h2>
       <article id="invoice-preview" class="official-form" aria-label="Έντυπο Γ.Λ.25">
         <img class="official-form-background" src="src/assets/gl25-template.svg" alt="Επίσημο έντυπο Γ.Λ.25">
@@ -200,8 +218,24 @@
     </section>
   </main>
 
-  <footer class="app-footer no-print">
-    <a href="https://markellosecosystem.com/" target="_blank" rel="noopener noreferrer">Markellos Ecosystem</a>
+  <footer class="app-footer no-print" aria-label="Πληροφορίες εφαρμογής">
+    <div class="app-footer-inner">
+      <p class="footer-government">© 2026 Κυπριακή Δημοκρατία</p>
+      <p class="footer-developer-line">
+        <a
+          href="https://markellosecosystem.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Developed by Markellos Markides, ανοίγει σε νέα καρτέλα"
+        >Developed by Markellos Markides</a>
+      </p>
+      <nav class="footer-links" aria-label="Νομικοί σύνδεσμοι">
+        <a href="#privacy-statement">Δήλωση Απορρήτου</a>
+        <a href="#cookies-policy">Πολιτική Cookies</a>
+        <a href="#accessibility-statement">Δήλωση Προσβασιμότητας</a>
+        <a href="#legal-notice">Νομική Σημείωση / Όροι Χρήσης</a>
+      </nav>
+    </div>
   </footer>
 
   <dialog id="page-settings-dialog" class="settings-dialog no-print" aria-labelledby="page-settings-title">

@@ -1,6 +1,6 @@
 import { setFormValues } from '../../shared/form-state.js';
 import { downloadOfficialPdf } from '../pdf-download/index.js';
-import { readInvoiceArchive, saveInvoiceArchive } from './storage.js';
+import { readInvoiceArchive, reserveNextInvoiceNumber, saveInvoiceArchive } from './storage.js';
 import {
   createInvoiceSnapshot,
   recordMatchesFilters,
@@ -212,6 +212,11 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
   registerButton.addEventListener('click', () => {
     if (!form.reportValidity()) return;
 
+    const invoiceNumberField = form.querySelector('#invoiceNumber');
+    if (invoiceNumberField && !invoiceNumberField.value.trim()) {
+      invoiceNumberField.value = reserveNextInvoiceNumber(records);
+    }
+
     const snapshot = createInvoiceSnapshot(form);
     if (!snapshot.invoiceNumber) {
       window.alert('Συμπλήρωσε αριθμό τιμολογίου πριν την καταχώριση.');
@@ -224,15 +229,13 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
 
     const existing = records.find(record => record.invoiceNumber === snapshot.invoiceNumber);
     if (existing) {
-      const confirmed = window.confirm(`Υπάρχει ήδη τιμολόγιο με αριθμό ${snapshot.invoiceNumber}. Να αντικατασταθεί;`);
-      if (!confirmed) return;
-      selectedRecordId = existing.id;
-      persist(records.map(record => record.id === existing.id ? { ...snapshot, id: existing.id } : record));
+      window.alert(`Υπάρχει ήδη τιμολόγιο με αριθμό ${snapshot.invoiceNumber}.`);
       return;
     }
 
     selectedRecordId = snapshot.id;
     persist([...records, snapshot]);
+    onFormUpdated?.(form);
     renderDetail(snapshot);
   });
 
