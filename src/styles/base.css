@@ -58,18 +58,21 @@ button:focus-visible {
   border-color: #225dab;
 }
 
-.app-footer-inner {
-  grid-template-columns: max-content max-content;
+.app-footer .app-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  column-gap: 0.4rem;
+  gap: 0.3rem 0;
 }
 
 .footer-developer-line::before {
   content: "|";
-  margin-right: 0.4rem;
+  margin: 0 0.45rem;
   color: #526078;
 }
 
-.footer-links {
-  grid-column: 1 / -1;
+.app-footer .footer-links {
+  flex: 0 0 100%;
+  justify-content: center;
 }
