@@ -57,3 +57,11 @@ button:focus-visible {
   outline-offset: 2px;
   border-color: #225dab;
 }
+
+.app-footer-inner {
+  grid-template-columns: auto auto;
+}
+
+.footer-links {
+  grid-column: 1 / -1;
+}
