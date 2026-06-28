@@ -59,7 +59,15 @@ button:focus-visible {
 }
 
 .app-footer-inner {
-  grid-template-columns: auto auto;
+  grid-template-columns: max-content max-content;
+  justify-content: center;
+  column-gap: 0.4rem;
+}
+
+.footer-developer-line::before {
+  content: "|";
+  margin-right: 0.4rem;
+  color: #526078;
 }
 
 .footer-links {
