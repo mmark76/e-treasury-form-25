@@ -59,20 +59,27 @@ button:focus-visible {
 }
 
 .app-footer .app-footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 0.15rem 0.8rem;
+  position: relative;
+}
+
+.footer-credits {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem 0;
 }
 
 .footer-developer-line::before {
   content: "|";
-  margin: 0 0.45rem;
+  margin: 0 0.35rem;
   color: #526078;
 }
 
 .app-footer .footer-links {
-  flex: 0 0 100%;
   justify-content: center;
 }

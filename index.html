@@ -45,16 +45,16 @@
               <dt>Επόμενος διαθέσιμος αριθμός</dt>
               <dd id="next-invoice-number">00001</dd>
             </div>
-            <div>
-              <dt>Αριθμός τρέχοντος τιμολογίου</dt>
-              <dd id="current-invoice-number">-</dd>
-            </div>
           </dl>
           <p class="feature-help">Ο αριθμός δημιουργείται αυτόματα κατά την επιτυχή καταχώριση και δεν τροποποιείται χειροκίνητα.</p>
         </section>
 
+        <label class="invoice-number-card invoice-only-field numbering-field">
+          <span class="invoice-number-label">Αριθμός τιμολογίου</span>
+          <input id="invoiceNumber" inputmode="numeric" placeholder="Δεν έχει αποδοθεί" readonly aria-describedby="numbering-title">
+        </label>
+
         <fieldset class="issue-details-fieldset">
-          <legend>Στοιχεία έκδοσης</legend>
           <div class="form-grid">
             <label class="field field-wide service-setting-field">Τμήμα / Υπηρεσία
               <input id="department" data-template-key="department" value="ΚΛΑΔΟΣ ΔΙΑΧΕΙΡΙΣΗΣ ΧΩΡΟΥ ΚΡΑΤΙΚΗΣ ΕΚΘΕΣΗΣ / ΥΕ / ΥΕΕ&Β">
@@ -64,9 +64,6 @@
             </label>
             <label class="field service-setting-field">Αρ. Μητρώου Φ.Π.Α.
               <input id="vatRegistration" data-template-key="vatRegistration" value="9000158T">
-            </label>
-            <label class="field invoice-only-field numbering-field">Αριθμός τιμολογίου
-              <input id="invoiceNumber" inputmode="numeric" placeholder="00000" readonly aria-describedby="numbering-title">
             </label>
             <label class="field issue-date-field invoice-only-field">Ημερομηνία έκδοσης
               <span class="date-entry">
@@ -220,15 +217,18 @@
 
   <footer class="app-footer no-print" aria-label="Πληροφορίες εφαρμογής">
     <div class="app-footer-inner">
-      <p class="footer-government">© 2026 Κυπριακή Δημοκρατία</p>
-      <p class="footer-developer-line">
-        <a
-          href="https://markellosecosystem.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Developed by Markellos Markides, ανοίγει σε νέα καρτέλα"
-        >Developed by Markellos Markides</a>
-      </p>
+      <div class="footer-credits">
+        <p class="footer-government">© 2026 Κυπριακή Δημοκρατία</p>
+        <p class="footer-developer-line">
+          <a
+            href="https://markellosecosystem.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Developed by Markellos Markides, ανοίγει σε νέα καρτέλα"
+          >Developed by Markellos Markides</a>
+        </p>
+      </div>
+      <p id="app-version" class="app-version" aria-label="Application version"></p>
       <nav class="footer-links" aria-label="Νομικοί σύνδεσμοι">
         <a href="#privacy-statement">Δήλωση Απορρήτου</a>
         <a href="#cookies-policy">Πολιτική Cookies</a>

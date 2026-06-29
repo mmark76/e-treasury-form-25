@@ -5,6 +5,7 @@ import { initializeCustomersFeature } from './features/customers/index.js';
 import { readCustomers } from './features/customers/storage.js';
 import { initializeInvoiceArchive } from './features/invoice-archive/index.js';
 import { formatInvoiceSequenceNumber, readNextInvoiceNumber } from './features/invoice-archive/storage.js';
+import { APP_VERSION_LABEL } from './config/version.js';
 import { getFormValues } from './shared/form-state.js';
 import { readJson, writeJson, removeStoredValue } from './shared/storage.js';
 
@@ -234,11 +235,13 @@ function initializePageSettingsDialog() {
 
 function updateInvoiceNumberDisplay() {
   const nextNumber = document.getElementById('next-invoice-number');
-  const currentNumber = document.getElementById('current-invoice-number');
-  const invoiceNumber = document.getElementById('invoiceNumber')?.value.trim() ?? '';
 
   if (nextNumber) nextNumber.textContent = formatInvoiceSequenceNumber(readNextInvoiceNumber());
-  if (currentNumber) currentNumber.textContent = invoiceNumber || '-';
+}
+
+function initializeVersionIndicator() {
+  const versionIndicator = document.getElementById('app-version');
+  if (versionIndicator) versionIndicator.textContent = APP_VERSION_LABEL;
 }
 
 function initializeCurrentCustomerSelector({ form, renderInvoicePreview, onFormUpdated }) {
@@ -315,6 +318,7 @@ function initializeApp() {
   setAutomaticDefaults();
   initializeTemplateManager();
   initializeDateFields();
+  initializeVersionIndicator();
 
   function handleFormUpdated(updatedForm) {
     saveDraft(updatedForm);

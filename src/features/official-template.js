@@ -192,7 +192,7 @@ function getValue(id) {
 
 function padInvoiceNumber(value) {
   const digits = String(value || '').replace(/\D/g, '');
-  return digits ? digits.slice(-5).padStart(5, '0') : '00000';
+  return digits ? digits.slice(-5).padStart(5, '0') : '';
 }
 
 function splitAmount(value) {
