@@ -1,13 +1,31 @@
 import { initializeTemplateManager } from './features/templates.js';
 import { initializeOfficialTemplateLayout, renderBlankOfficialTemplate, renderOfficialTemplate } from './features/official-template.js';
+import { calculateInvoice } from './features/calculations.js';
 import { initializePdfDownload } from './features/pdf-download/index.js';
 import { initializeCustomersFeature } from './features/customers/index.js';
 import { readCustomers } from './features/customers/storage.js';
 import { initializeInvoiceArchive } from './features/invoice-archive/index.js';
-import { formatInvoiceSequenceNumber, readNextInvoiceNumber } from './features/invoice-archive/storage.js';
+import {
+  hasLegacyEmployeeInvoices,
+  migrateInvoiceArchiveForEmployee,
+  readInvoiceArchive,
+  readInvoiceNumberState
+} from './features/invoice-archive/storage.js';
 import { APP_VERSION_LABEL } from './config/version.js';
 import { getFormValues } from './shared/form-state.js';
 import { readJson, writeJson, removeStoredValue } from './shared/storage.js';
+import { getCurrentIssuerUnitCode, getCurrentServiceId, sanitizeServiceId } from './shared/service-identity.js';
+import {
+  applyEmployeeProfileToForm,
+  employeeProfileFromForm,
+  ensureEmployeeProfile,
+  isEmployeeCodeValid,
+  normalizeEmployeeCode,
+  readEmployeeProfile,
+  saveEmployeeProfile,
+  validateEmployeeCode
+} from './shared/employee-profile.js';
+import { initializeTabCoordination } from './shared/tab-coordination.js';
 
 const DRAFT_KEY = 'eTreasury.form25.draft.v1';
 const GREEK_MONTHS = [
@@ -70,6 +88,72 @@ function restoreDraft(form) {
 
 function saveDraft(form) {
   writeJson(DRAFT_KEY, getFormValues(form));
+}
+
+function updateChargeCalculationFields(form) {
+  const netAmount = form.querySelector('#netAmount');
+  const vatRate = form.querySelector('#vatRate');
+  const vatAmount = form.querySelector('#vatAmount');
+  const grossAmount = form.querySelector('#grossAmount');
+  if (!netAmount || !vatRate) return;
+
+  const calculation = calculateInvoice(netAmount.value, vatRate.value);
+  if (vatAmount) vatAmount.value = calculation.vatAmount.toFixed(2);
+  if (grossAmount) grossAmount.value = calculation.grossAmount.toFixed(2);
+}
+
+function normalizeServiceIdField(form) {
+  const serviceId = form.querySelector('#serviceId');
+  if (serviceId) serviceId.value = sanitizeServiceId(serviceId.value);
+}
+
+function employeeScopeForForm(form) {
+  return {
+    issuerUnitId: getCurrentServiceId(form),
+    employeeId: employeeProfileFromForm(form).employeeId
+  };
+}
+
+function employeeHasInvoices(form) {
+  const profile = employeeProfileFromForm(form);
+  if (!profile.employeeId) return false;
+  return readInvoiceArchive().some(record =>
+    record.issuerUnitId === getCurrentServiceId(form) && record.employeeId === profile.employeeId
+  );
+}
+
+function updateEmployeeProfileLock(form) {
+  const employeeCode = form.querySelector('#employeeCode');
+  const note = document.getElementById('employee-code-lock-note');
+  const locked = employeeHasInvoices(form);
+  if (employeeCode) employeeCode.readOnly = locked;
+  if (note) note.hidden = !locked;
+}
+
+function validateEmployeeProfileFields(form) {
+  const employeeCode = form.querySelector('#employeeCode');
+  if (!employeeCode) return true;
+
+  employeeCode.value = normalizeEmployeeCode(employeeCode.value);
+  const message = validateEmployeeCode(employeeCode.value);
+  employeeCode.setCustomValidity(message);
+  return !message;
+}
+
+function persistUnlockedEmployeeProfile(form) {
+  const formProfile = employeeProfileFromForm(form);
+  if (employeeHasInvoices(form)) {
+    const storedProfile = readEmployeeProfile();
+    const nextProfile = {
+      ...storedProfile,
+      employeeName: formProfile.employeeName
+    };
+    applyEmployeeProfileToForm(form, nextProfile);
+    return saveEmployeeProfile(nextProfile);
+  }
+
+  if (!validateEmployeeProfileFields(form)) return false;
+  return saveEmployeeProfile(formProfile);
 }
 
 function initializeDateField(fieldId) {
@@ -136,6 +220,7 @@ function initializeViewShell({ renderPreview }) {
     numbering: 'Αύξων Αριθμός Τιμολογίου',
     service: 'Στοιχεία Τμήματος / Υπηρεσίας',
     debtor: 'Στοιχεία Οφειλέτη / Πελάτη',
+    charge: 'Στοιχεία Χρέωσης / Φ.Π.Α.',
     customers: 'Αρχείο Οφειλετών / Πελατών',
     archive: 'Αρχείο Τιμολογίων'
   };
@@ -234,9 +319,27 @@ function initializePageSettingsDialog() {
 }
 
 function updateInvoiceNumberDisplay() {
+  const form = document.getElementById('invoice-form');
+  const profile = employeeProfileFromForm(form);
+  const state = readInvoiceNumberState(employeeScopeForForm(form));
+  const issuerUnitOutput = document.getElementById('active-issuer-unit-code');
+  const employeeCodeOutput = document.getElementById('active-employee-code');
   const nextNumber = document.getElementById('next-invoice-number');
+  const numberRange = document.getElementById('invoice-number-range');
+  const numberWarning = document.getElementById('invoice-number-warning');
+  const registerButton = document.querySelector('.invoice-archive-panel .button-primary');
 
-  if (nextNumber) nextNumber.textContent = formatInvoiceSequenceNumber(readNextInvoiceNumber());
+  if (issuerUnitOutput) issuerUnitOutput.textContent = getCurrentIssuerUnitCode(form);
+  if (employeeCodeOutput) employeeCodeOutput.textContent = profile.employeeCode || '-';
+  if (nextNumber) nextNumber.textContent = state.exhausted ? '' : state.formattedNextNumber;
+  if (numberRange) numberRange.textContent = `${state.minimumNumber}-${state.maximumNumber}`;
+  if (numberWarning) {
+    numberWarning.hidden = !state.exhausted;
+    numberWarning.textContent = state.exhausted
+      ? 'Η προσωπική σειρά αρίθμησης 00001–99999 έχει εξαντληθεί. Δεν μπορούν να εκδοθούν άλλα τιμολόγια με τον συγκεκριμένο κωδικό υπαλλήλου.'
+      : '';
+  }
+  if (registerButton) registerButton.disabled = state.exhausted;
 }
 
 function initializeVersionIndicator() {
@@ -315,15 +418,36 @@ function initializeApp() {
   initializeOfficialTemplateLayout();
   setAutomaticDefaults();
   restoreDraft(form);
+  updateChargeCalculationFields(form);
+  normalizeServiceIdField(form);
+  ensureEmployeeProfile(form);
+  validateEmployeeProfileFields(form);
   setAutomaticDefaults();
+  if (hasLegacyEmployeeInvoices() && isEmployeeCodeValid(employeeProfileFromForm(form).employeeCode)) {
+    const confirmed = window.confirm('Τα υφιστάμενα τοπικά τιμολόγια θα συνδεθούν με το τρέχον προφίλ υπαλλήλου. Να συνεχιστεί η migration;');
+    if (confirmed) migrateInvoiceArchiveForEmployee(employeeProfileFromForm(form), getCurrentServiceId(form));
+  } else {
+    migrateInvoiceArchiveForEmployee(employeeProfileFromForm(form), getCurrentServiceId(form));
+  }
   initializeTemplateManager();
   initializeDateFields();
   initializeVersionIndicator();
+  updateEmployeeProfileLock(form);
 
   function handleFormUpdated(updatedForm) {
+    updateChargeCalculationFields(updatedForm);
+    validateEmployeeProfileFields(updatedForm);
+    persistUnlockedEmployeeProfile(updatedForm);
+    updateEmployeeProfileLock(updatedForm);
     saveDraft(updatedForm);
     updateInvoiceNumberDisplay();
   }
+
+  initializeTabCoordination(() => {
+    updateEmployeeProfileLock(form);
+    updateInvoiceNumberDisplay();
+    window.dispatchEvent(new CustomEvent('invoice-archive:external-update'));
+  });
 
   initializeCustomersFeature({
     form,
@@ -344,14 +468,36 @@ function initializeApp() {
   updateInvoiceNumberDisplay();
 
   form.addEventListener('input', event => {
+    if (event.target?.id === 'employeeCode') {
+      event.target.value = normalizeEmployeeCode(event.target.value);
+      validateEmployeeProfileFields(form);
+    }
     if (inputBelongsToInvoicePreview(event.target)) previewHasInvoiceData = true;
+    if (event.target?.id === 'employeeCode' || event.target?.id === 'employeeName') {
+      persistUnlockedEmployeeProfile(form);
+      updateEmployeeProfileLock(form);
+    }
+    if (event.target?.id === 'netAmount' || event.target?.id === 'vatRate') {
+      updateChargeCalculationFields(form);
+    }
     saveDraft(form);
     updateInvoiceNumberDisplay();
     renderCurrentPreview();
   });
 
   form.addEventListener('change', event => {
+    if (event.target?.id === 'employeeCode') {
+      event.target.value = normalizeEmployeeCode(event.target.value);
+      validateEmployeeProfileFields(form);
+    }
     if (inputBelongsToInvoicePreview(event.target)) previewHasInvoiceData = true;
+    if (event.target?.id === 'employeeCode' || event.target?.id === 'employeeName') {
+      persistUnlockedEmployeeProfile(form);
+      updateEmployeeProfileLock(form);
+    }
+    if (event.target?.id === 'netAmount' || event.target?.id === 'vatRate') {
+      updateChargeCalculationFields(form);
+    }
     saveDraft(form);
     updateInvoiceNumberDisplay();
     renderCurrentPreview();
@@ -364,6 +510,7 @@ function initializeApp() {
     removeStoredValue(DRAFT_KEY);
     form.reset();
     setAutomaticDefaults();
+    updateChargeCalculationFields(form);
     saveDraft(form);
     previewHasInvoiceData = false;
     updateInvoiceNumberDisplay();

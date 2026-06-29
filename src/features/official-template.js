@@ -1,5 +1,8 @@
 import { calculateInvoice } from './calculations.js';
 import { amountToGreekWords } from './number-to-words.js';
+import { buildFullInvoiceIdentifier, formatInvoiceSequenceNumber } from '../shared/invoice-number.js';
+import { DEFAULT_ISSUER_UNIT_CODE } from '../shared/service-identity.js';
+import { normalizeEmployeeCode } from '../shared/employee-profile.js';
 
 const TEMPLATE_MARKUP = `
   <img class="form-template" src="assets/gl25-template.png" alt="Επίσημο κενό έντυπο Γ.Λ.25">
@@ -191,8 +194,7 @@ function getValue(id) {
 }
 
 function padInvoiceNumber(value) {
-  const digits = String(value || '').replace(/\D/g, '');
-  return digits ? digits.slice(-5).padStart(5, '0') : '';
+  return formatInvoiceSequenceNumber(value);
 }
 
 function splitAmount(value) {
@@ -251,7 +253,11 @@ export function renderOfficialTemplate() {
     department: getValue('department'),
     chapterCode: getValue('chapterCode'),
     vatRegistration: getValue('vatRegistration'),
-    invoiceNumber: padInvoiceNumber(getValue('invoiceNumber')),
+    invoiceNumber: buildFullInvoiceIdentifier({
+      issuerUnitCode: getValue('issuerUnitCode') || DEFAULT_ISSUER_UNIT_CODE,
+      employeeCode: normalizeEmployeeCode(getValue('employeeCode')),
+      invoiceNumber: getValue('invoiceNumber')
+    }) || padInvoiceNumber(getValue('invoiceNumber')),
     issueDate: formatIssueDate(getValue('issueDate')),
     serviceAddress: getValue('serviceAddress'),
     servicePostalCode: getValue('servicePostalCode'),

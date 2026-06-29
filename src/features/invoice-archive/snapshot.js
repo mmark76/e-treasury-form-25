@@ -2,14 +2,20 @@ import { calculateInvoice, formatCurrency } from '../calculations.js';
 import { amountToGreekWords } from '../number-to-words.js';
 import { getFormValues } from '../../shared/form-state.js';
 import { readCustomers } from '../customers/storage.js';
+import {
+  buildFullInvoiceIdentifier,
+  formatInvoiceSequenceNumber,
+  parseInvoiceSequenceNumber
+} from '../../shared/invoice-number.js';
+import { DEFAULT_ISSUER_UNIT_CODE, sanitizeServiceId } from '../../shared/service-identity.js';
+import { normalizeEmployeeCode } from '../../shared/employee-profile.js';
 
 export function createRecordId() {
   return crypto.randomUUID?.() ?? `invoice-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export function padInvoiceNumber(value) {
-  const digits = String(value || '').replace(/\D/g, '');
-  return digits ? digits.slice(-5).padStart(5, '0') : '';
+  return formatInvoiceSequenceNumber(value);
 }
 
 export function formatDateTime(value) {
@@ -55,16 +61,39 @@ function findCustomerIdForForm(form, formValues) {
 export function createInvoiceSnapshot(form) {
   const formValues = getFormValues(form);
   const calculation = calculateInvoice(formValues.netAmount, formValues.vatRate);
-  const invoiceNumber = padInvoiceNumber(formValues.invoiceNumber);
+  const invoiceNumber = parseInvoiceSequenceNumber(formValues.invoiceNumber);
+  const formattedInvoiceNumber = formatInvoiceSequenceNumber(invoiceNumber);
+  const issuerUnitId = sanitizeServiceId(formValues.serviceId);
+  const issuerUnitCode = String(formValues.issuerUnitCode || DEFAULT_ISSUER_UNIT_CODE).trim();
+  const issuerUnitName = String(formValues.department || '').trim();
+  const employeeId = String(formValues.employeeId || '').trim();
+  const employeeCode = normalizeEmployeeCode(formValues.employeeCode);
+  const employeeName = String(formValues.employeeName || '').trim();
+  const fullInvoiceIdentifier = buildFullInvoiceIdentifier({
+    issuerUnitCode,
+    employeeCode,
+    invoiceNumber
+  });
   const createdAt = new Date().toISOString();
 
   return {
     id: createRecordId(),
+    serviceId: issuerUnitId,
+    serviceName: issuerUnitName,
+    issuerUnitId,
+    issuerUnitCode,
+    issuerUnitName,
+    employeeId,
+    employeeCode,
+    employeeName,
     invoiceNumber,
+    formattedInvoiceNumber,
+    fullInvoiceIdentifier,
     issueDate: formValues.issueDate || '',
     issueDateValue: dateValue(formValues.issueDate),
     customerId: findCustomerIdForForm(form, formValues),
     createdAt,
+    issuedAt: createdAt,
     createdAtDisplay: formatDateTime(createdAt),
     debtorName: formValues.debtorName || '',
     debtorTaxId: formValues.debtorTaxId || '',
@@ -88,7 +117,16 @@ export function createInvoiceSnapshot(form) {
 }
 
 export function recordMatchesFilters(record, filters) {
-  const text = [record.invoiceNumber, record.debtorName, record.debtorTaxId]
+  const text = [
+    record.fullInvoiceIdentifier,
+    record.formattedInvoiceNumber,
+    record.invoiceNumber,
+    record.employeeCode,
+    record.serviceId,
+    record.serviceName,
+    record.debtorName,
+    record.debtorTaxId
+  ]
     .join(' ')
     .toLocaleLowerCase('el');
   const query = filters.query.trim().toLocaleLowerCase('el');
@@ -100,7 +138,15 @@ export function recordMatchesFilters(record, filters) {
 
 export function recordSummary(record) {
   return {
-    invoiceNumber: record.invoiceNumber || 'Χωρίς αριθμό',
+    serviceId: record.serviceId || '',
+    serviceName: record.serviceName || '',
+    issuerUnitId: record.issuerUnitId || record.serviceId || '',
+    issuerUnitCode: record.issuerUnitCode || '',
+    employeeId: record.employeeId || '',
+    employeeCode: record.employeeCode || '',
+    employeeName: record.employeeName || '',
+    invoiceNumber: record.formattedInvoiceNumber || padInvoiceNumber(record.invoiceNumber) || 'Χωρίς αριθμό',
+    fullInvoiceIdentifier: record.fullInvoiceIdentifier || record.formattedInvoiceNumber || padInvoiceNumber(record.invoiceNumber) || 'Χωρίς αριθμό',
     issueDate: record.issueDate || '',
     debtorName: record.debtorName || '',
     debtorTaxId: record.debtorTaxId || '',

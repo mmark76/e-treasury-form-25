@@ -292,7 +292,12 @@ body {
 .workspace[data-active-view="debtor"] .charge-fieldset,
 .workspace[data-active-view="debtor"] .signature-account-fieldset,
 .workspace[data-active-view="service"] .numbering-panel,
-.workspace[data-active-view="service"] .invoice-only-field {
+.workspace[data-active-view="service"] .invoice-only-field,
+.workspace[data-active-view="charge"] .numbering-panel,
+.workspace[data-active-view="charge"] .numbering-field,
+.workspace[data-active-view="charge"] .issue-details-fieldset,
+.workspace[data-active-view="charge"] .debtor-fieldset,
+.workspace[data-active-view="charge"] .signature-account-fieldset {
   display: none;
 }
 
@@ -314,6 +319,8 @@ body {
 .workspace[data-active-view="debtor"] .invoice-archive-panel,
 .workspace[data-active-view="service"] .customers-panel,
 .workspace[data-active-view="service"] .invoice-archive-panel,
+.workspace[data-active-view="charge"] .customers-panel,
+.workspace[data-active-view="charge"] .invoice-archive-panel,
 .workspace[data-active-view="home"] .editor-panel {
   display: none;
 }
@@ -354,6 +361,11 @@ body {
   font-size: 1.4rem;
   font-weight: 850;
   letter-spacing: 0;
+}
+
+.numbering-warning {
+  color: #8a1f11;
+  font-weight: 700;
 }
 
 .invoice-number-card {
@@ -420,6 +432,14 @@ legend {
 .field > select {
   margin-top: 0.35rem;
   font-weight: 500;
+}
+
+.calculated-field input[readonly] {
+  border-color: #cbd5e1;
+  background: #f2f5f8;
+  color: #172033;
+  font-weight: 750;
+  cursor: default;
 }
 
 .date-entry {
@@ -516,6 +536,13 @@ legend {
 .archive-filters {
   align-items: end;
   margin: 0.75rem 0;
+}
+
+.invoice-archive-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 0.75rem;
 }
 
 .table-scroll {

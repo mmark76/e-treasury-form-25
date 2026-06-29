@@ -25,6 +25,7 @@
         <button class="nav-card nav-card-amber" type="button" data-view-target="numbering">Αύξων Αριθμός Τιμολογίου</button>
         <button class="nav-card nav-card-sage" type="button" data-view-target="service">Στοιχεία Τμήματος / Υπηρεσίας</button>
         <button class="nav-card nav-card-terracotta" type="button" data-view-target="debtor">Στοιχεία Οφειλέτη / Πελάτη</button>
+        <button class="nav-card nav-card-amber" type="button" data-view-target="charge">Στοιχεία Χρέωσης / Φ.Π.Α.</button>
         <button class="nav-card nav-card-teal" type="button" data-view-target="customers">Αρχείο Οφειλετών / Πελατών</button>
         <button class="nav-card nav-card-amber" type="button" data-view-target="archive">Αρχείο Τιμολογίων</button>
       </nav>
@@ -45,8 +46,21 @@
               <dt>Επόμενος διαθέσιμος αριθμός</dt>
               <dd id="next-invoice-number">00001</dd>
             </div>
+            <div>
+              <dt>Επιτρεπτό εύρος</dt>
+              <dd id="invoice-number-range">00001-99999</dd>
+            </div>
+            <div>
+              <dt>Εκδούσα μονάδα</dt>
+              <dd id="active-issuer-unit-code">ΥΕΕΒ-ΥΕ-ΚΔΧΕ</dd>
+            </div>
+            <div>
+              <dt>Κωδικός υπαλλήλου</dt>
+              <dd id="active-employee-code">ΜΜ</dd>
+            </div>
           </dl>
-          <p class="feature-help">Ο αριθμός δημιουργείται αυτόματα κατά την επιτυχή καταχώριση και δεν τροποποιείται χειροκίνητα.</p>
+          <p class="feature-help" id="invoice-number-help">Κάθε υπάλληλος διαθέτει ανεξάρτητη προσωπική σειρά αρίθμησης από 00001 έως 99999. Η σειρά δεν επανεκκινείται. Μετά το 99999 δεν μπορούν να εκδοθούν άλλα τιμολόγια με τον συγκεκριμένο κωδικό υπαλλήλου.</p>
+          <p class="feature-help numbering-warning" id="invoice-number-warning" hidden></p>
         </section>
 
         <label class="invoice-number-card invoice-only-field numbering-field">
@@ -58,6 +72,12 @@
           <div class="form-grid">
             <label class="field field-wide service-setting-field">Τμήμα / Υπηρεσία
               <input id="department" data-template-key="department" value="ΚΛΑΔΟΣ ΔΙΑΧΕΙΡΙΣΗΣ ΧΩΡΟΥ ΚΡΑΤΙΚΗΣ ΕΚΘΕΣΗΣ / ΥΕ / ΥΕΕ&Β">
+            </label>
+            <label class="field service-setting-field">serviceId
+              <input id="serviceId" data-template-key="serviceId" value="STATE-FAIR-MANAGEMENT" autocomplete="off" required>
+            </label>
+            <label class="field service-setting-field">Κωδικός εκδούσας μονάδας
+              <input id="issuerUnitCode" data-template-key="issuerUnitCode" value="ΥΕΕΒ-ΥΕ-ΚΔΧΕ" autocomplete="off" required>
             </label>
             <label class="field service-setting-field">Κωδικός Κεφαλαίου
               <input id="chapterCode" data-template-key="chapterCode" value="1401100">
@@ -74,6 +94,15 @@
             <label class="field field-wide service-setting-field">Διεύθυνση Υπηρεσίας
               <input id="serviceAddress" data-template-key="serviceAddress" value="ΑΝΔΡΕΑ ΑΡΑΟΥΖΟΥ 6, ΛΕΥΚΩΣΙΑ">
             </label>
+            <input id="employeeId" type="hidden" autocomplete="off">
+            <label class="field service-setting-field">Ονοματεπώνυμο υπαλλήλου
+              <input id="employeeName" value="Markellos Markides" autocomplete="off">
+            </label>
+            <label class="field service-setting-field">Κωδικός υπαλλήλου
+              <input id="employeeCode" value="ΜΜ" autocomplete="off" minlength="2" maxlength="10" required aria-describedby="employee-code-note">
+            </label>
+            <p id="employee-code-note" class="feature-help service-setting-field field-wide">Ο κωδικός υπαλλήλου πρέπει να είναι μοναδικός στην εκδούσα μονάδα.</p>
+            <p id="employee-code-lock-note" class="feature-help service-setting-field field-wide" hidden>Ο κωδικός υπαλλήλου έχει κλειδωθεί επειδή έχουν ήδη εκδοθεί τιμολόγια.</p>
           </div>
         </fieldset>
 
@@ -107,7 +136,7 @@
         </fieldset>
 
         <fieldset class="charge-fieldset">
-          <legend>Χρέωση</legend>
+          <legend>Χρέωση και Φ.Π.Α.</legend>
           <div class="form-grid">
             <label class="field field-wide invoice-only-field">Περιγραφή αγαθών / υπηρεσιών
               <textarea id="description" data-template-key="description" rows="2">ΚΑΤΑΝΑΛΩΣΗ ΗΛΕΚΤΡΙΚΟΥ ΡΕΥΜΑΤΟΣ</textarea>
@@ -116,10 +145,16 @@
               <input id="billingPeriod" data-template-key="billingPeriod" placeholder="ΜΑΪΟΣ 2026">
             </label>
             <label class="field invoice-only-field">Καθαρό ποσό (€)
-              <input id="netAmount" data-template-key="netAmount" type="number" min="0" step="0.01" value="0.00">
+              <input id="netAmount" data-template-key="netAmount" type="number" inputmode="decimal" min="0.01" step="0.01" value="0.00" required aria-describedby="charge-calculation-help">
             </label>
             <label class="field invoice-only-field">Συντελεστής Φ.Π.Α. (%)
-              <input id="vatRate" type="number" min="0" step="0.01" value="19">
+              <input id="vatRate" type="number" inputmode="decimal" min="0" max="100" step="0.01" value="19" required aria-describedby="charge-calculation-help">
+            </label>
+            <label class="field invoice-only-field calculated-field">Ποσό Φ.Π.Α. (€)
+              <input id="vatAmount" value="0.00" readonly aria-readonly="true">
+            </label>
+            <label class="field invoice-only-field calculated-field">Συνολικό ποσό (€)
+              <input id="grossAmount" value="0.00" readonly aria-readonly="true">
             </label>
             <label class="field invoice-only-field">Τύπος εξόφλησης
               <select id="paymentType" data-template-key="paymentType">
@@ -128,6 +163,7 @@
                 <option>Προκαταβολή</option>
               </select>
             </label>
+            <p id="charge-calculation-help" class="feature-help field-wide invoice-only-field">Το ποσό Φ.Π.Α. και το συνολικό ποσό υπολογίζονται αυτόματα από το καθαρό ποσό και τον συντελεστή Φ.Π.Α.</p>
           </div>
         </fieldset>
 

@@ -21,7 +21,28 @@ export function writeJson(key, value) {
 export function removeStoredValue(key) {
   try {
     localStorage.removeItem(key);
+    return true;
   } catch (error) {
     console.warn(`Unable to remove local storage key: ${key}`, error);
+    return false;
+  }
+}
+
+export function readStoredValue(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.warn(`Unable to read local storage key: ${key}`, error);
+    return null;
+  }
+}
+
+export function writeStoredValue(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.warn(`Unable to write local storage key: ${key}`, error);
+    return false;
   }
 }

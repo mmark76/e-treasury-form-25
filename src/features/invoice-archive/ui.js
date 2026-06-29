@@ -1,11 +1,40 @@
 import { setFormValues } from '../../shared/form-state.js';
+import { readStoredValue } from '../../shared/storage.js';
 import { downloadOfficialPdf } from '../pdf-download/index.js';
-import { readInvoiceArchive, reserveNextInvoiceNumber, saveInvoiceArchive } from './storage.js';
+import {
+  advanceInvoiceCounter,
+  formatInvoiceSequenceNumber,
+  invoiceNumberMatchesNext,
+  readInvoiceArchive,
+  readInvoiceNumberState,
+  readNextInvoiceNumber,
+  saveInvoiceArchive
+} from './storage.js';
+import { getCurrentIssuerUnitCode, getCurrentServiceId } from '../../shared/service-identity.js';
+import {
+  EMPLOYEE_PROFILE_KEY,
+  applyEmployeeProfileToForm,
+  employeeProfileFromForm,
+  isEmployeeCodeValid,
+  normalizeEmployeeCode,
+  profileMatchesForm,
+  readEmployeeProfile,
+  saveEmployeeProfile,
+  validateEmployeeCode
+} from '../../shared/employee-profile.js';
+import { notifyTabs, withInvoiceIssuanceLock } from '../../shared/tab-coordination.js';
 import {
   createInvoiceSnapshot,
   recordMatchesFilters,
   recordSummary
 } from './snapshot.js';
+import { buildEmployeeArchiveCsv, buildEmployeeArchiveExport } from './export.js';
+import {
+  applyRestorePlan,
+  buildRestorePlan,
+  parseEmployeeArchiveBackup
+} from './restore.js';
+import { employeeInvoiceCounterKey } from './storage.js';
 
 function createButton(text, className = 'template-button') {
   const button = document.createElement('button');
@@ -27,7 +56,7 @@ function loadRecordToForm(record, form, renderOfficialTemplate, onFormUpdated) {
 }
 
 function filenameForRecord(record) {
-  const number = String(record.invoiceNumber || '00000').replace(/[<>:"\\|?*\x00-\x1f\s]+/g, '-');
+  const number = filenamePart(record.fullInvoiceIdentifier || record.formattedInvoiceNumber || record.invoiceNumber, '00000');
   const date = String(record.issueDate || '').replace(/\//g, '-').replace(/[<>:"\\|?*\x00-\x1f\s]+/g, '');
   return `GL25-${number || '00000'}-${date || 'χωρις-ημερομηνια'}.pdf`;
 }
@@ -39,6 +68,48 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function activeScope(form) {
+  return {
+    issuerUnitId: getCurrentServiceId(form),
+    employeeId: employeeProfileFromForm(form).employeeId
+  };
+}
+
+function belongsToActiveEmployee(record, form) {
+  const scope = activeScope(form);
+  return record.issuerUnitId === scope.issuerUnitId && record.employeeId === scope.employeeId;
+}
+
+function filenamePart(value, fallback = 'archive') {
+  return String(value || fallback)
+    .trim()
+    .replace(/[<>:"\\|?*\x00-\x1f\s/]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || fallback;
+}
+
+function downloadTextFile({ filename, content, type }) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function readStoredEmployeeProfileForRestore() {
+  const rawProfile = readStoredValue(EMPLOYEE_PROFILE_KEY);
+  if (!rawProfile) return null;
+  try {
+    return JSON.parse(rawProfile);
+  } catch {
+    return null;
+  }
 }
 
 function displayDateToIso(value) {
@@ -74,6 +145,24 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
   `;
 
   const registerButton = createButton('Καταχώριση στο Αρχείο', 'button button-primary');
+  const downloadJsonButton = createButton('Λήψη του αρχείου μου', 'button button-secondary');
+  const downloadCsvButton = createButton('Λήψη αναφοράς CSV', 'button button-secondary');
+  const restoreButton = createButton('Επαναφορά προσωπικού αρχείου', 'button button-secondary');
+  const restoreInput = document.createElement('input');
+  restoreInput.type = 'file';
+  restoreInput.accept = '.json,application/json';
+  restoreInput.hidden = true;
+  const archiveTools = document.createElement('div');
+  archiveTools.className = 'invoice-archive-tools';
+  archiveTools.append(downloadJsonButton, downloadCsvButton, restoreButton, restoreInput);
+  const privacyNote = document.createElement('p');
+  privacyNote.className = 'feature-help';
+  privacyNote.textContent = 'Το αρχείο περιέχει προσωπικά και οικονομικά δεδομένα. Αποθηκεύστε το σε ασφαλή τοποθεσία.';
+  const restoreNote = document.createElement('p');
+  restoreNote.className = 'feature-help';
+  restoreNote.textContent = 'Χρησιμοποιήστε μόνο αρχείο JSON που δημιουργήθηκε από τη λειτουργία “Λήψη του αρχείου μου”. Η επαναφορά δεν εισάγει αρχεία CSV.';
+  const archiveCount = document.createElement('p');
+  archiveCount.className = 'feature-help';
   const queryInput = document.createElement('input');
   queryInput.type = 'search';
   queryInput.placeholder = 'Αναζήτηση με αριθμό, πελάτη ή φορολογική ταυτότητα';
@@ -103,6 +192,8 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
     <thead>
       <tr>
         <th>Αριθμός</th>
+        <th>Υπηρεσία</th>
+        <th>Υπάλληλος</th>
         <th>Ημερομηνία</th>
         <th>Πελάτης</th>
         <th>Φορολογική ταυτότητα</th>
@@ -122,7 +213,7 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
   tableWrap.className = 'table-scroll';
   tableWrap.append(table);
 
-  section.append(registerButton, filters, tableWrap, detail);
+  section.append(registerButton, archiveTools, privacyNote, restoreNote, archiveCount, filters, tableWrap, detail);
 
   function labelControl(text, control) {
     const label = document.createElement('label');
@@ -140,10 +231,21 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
   }
 
   function persist(nextRecords) {
+    const saved = saveInvoiceArchive(nextRecords);
+    if (!saved) return false;
     records = nextRecords;
-    saveInvoiceArchive(records);
     renderTable();
     window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
+    return true;
+  }
+
+  function activeEmployeeRecords() {
+    return records.filter(record => belongsToActiveEmployee(record, form));
+  }
+
+  function refreshRecords() {
+    records = readInvoiceArchive();
+    renderTable();
   }
 
   function renderDetail(record) {
@@ -156,7 +258,9 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
     detail.innerHTML = `
       <strong>Προβολή snapshot</strong>
       <dl>
-        <dt>Αριθμός</dt><dd>${escapeHtml(summary.invoiceNumber)}</dd>
+        <dt>Αριθμός</dt><dd>${escapeHtml(summary.fullInvoiceIdentifier)}</dd>
+        <dt>Υπηρεσία</dt><dd>${escapeHtml(summary.serviceName || '-')}</dd>
+        <dt>Κωδικός υπαλλήλου</dt><dd>${escapeHtml(summary.employeeCode || '-')}</dd>
         <dt>Ημερομηνία έκδοσης</dt><dd>${escapeHtml(summary.issueDate)}</dd>
         <dt>Καταχώριση</dt><dd>${escapeHtml(record.createdAtDisplay)}</dd>
         <dt>Πελάτης</dt><dd>${escapeHtml(summary.debtorName || '-')}</dd>
@@ -169,17 +273,19 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
 
   function renderTable() {
     const tbody = table.querySelector('tbody');
-    const filtered = records.filter(record => recordMatchesFilters(record, currentFilters()));
+    const activeRecords = activeEmployeeRecords();
+    const filtered = activeRecords.filter(record => recordMatchesFilters(record, currentFilters()));
+    archiveCount.textContent = `Πλήθος τιμολογίων ενεργού υπαλλήλου: ${activeRecords.length}`;
     tbody.replaceChildren();
 
     if (!filtered.length) {
       const row = document.createElement('tr');
       const cell = document.createElement('td');
-      cell.colSpan = 8;
+      cell.colSpan = 10;
       cell.textContent = 'Δεν υπάρχουν εγγραφές.';
       row.append(cell);
       tbody.append(row);
-      renderDetail(records.find(record => record.id === selectedRecordId));
+      renderDetail(activeEmployeeRecords().find(record => record.id === selectedRecordId));
       return;
     }
 
@@ -188,7 +294,9 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
       const row = document.createElement('tr');
       row.dataset.recordId = record.id;
       row.innerHTML = `
-        <td>${escapeHtml(summary.invoiceNumber)}</td>
+        <td>${escapeHtml(summary.fullInvoiceIdentifier)}</td>
+        <td>${escapeHtml(summary.serviceName || '-')}</td>
+        <td>${escapeHtml(summary.employeeCode || '-')}</td>
         <td>${escapeHtml(summary.issueDate)}</td>
         <td>${escapeHtml(summary.debtorName)}</td>
         <td>${escapeHtml(summary.debtorTaxId)}</td>
@@ -206,37 +314,105 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
       tbody.append(row);
     });
 
-    renderDetail(records.find(record => record.id === selectedRecordId));
+    renderDetail(activeEmployeeRecords().find(record => record.id === selectedRecordId));
   }
 
-  registerButton.addEventListener('click', () => {
-    if (!form.reportValidity()) return;
+  async function issueInvoiceWithinLock() {
+    const freshRecords = readInvoiceArchive();
+    const storedProfile = readEmployeeProfile();
+    const formProfile = employeeProfileFromForm(form);
+    const employeeCodeMessage = validateEmployeeCode(formProfile.employeeCode);
+    if (employeeCodeMessage) {
+      window.alert(employeeCodeMessage);
+      return { ok: false };
+    }
+    const scope = activeScope(form);
+    const freshActiveRecords = freshRecords.filter(record =>
+      record.issuerUnitId === scope.issuerUnitId && record.employeeId === scope.employeeId
+    );
+
+    if (!profileMatchesForm(storedProfile, formProfile) && freshActiveRecords.length) {
+      window.alert('Ο κωδικός υπαλλήλου έχει κλειδωθεί επειδή έχουν ήδη εκδοθεί τιμολόγια.');
+      return { ok: false };
+    }
+    if (!freshActiveRecords.length && !saveEmployeeProfile(formProfile)) {
+      window.alert('Δεν ήταν δυνατή η αποθήκευση του προφίλ υπαλλήλου. Το τιμολόγιο δεν καταχωρίστηκε.');
+      return { ok: false };
+    }
+
+    const serviceIdField = form.querySelector('#serviceId');
+    if (serviceIdField && !serviceIdField.value.trim()) {
+      serviceIdField.setCustomValidity('Συμπλήρωσε σταθερό serviceId πριν την καταχώριση.');
+      serviceIdField.reportValidity();
+      serviceIdField.setCustomValidity('');
+      return { ok: false };
+    }
+
+    if (!form.reportValidity()) return { ok: false };
 
     const invoiceNumberField = form.querySelector('#invoiceNumber');
-    if (invoiceNumberField && !invoiceNumberField.value.trim()) {
-      invoiceNumberField.value = reserveNextInvoiceNumber(records);
+    const nextNumber = readNextInvoiceNumber(scope, freshRecords);
+    if (nextNumber === null) {
+      window.alert('Η προσωπική σειρά αρίθμησης 00001–99999 έχει εξαντληθεί. Δεν μπορούν να εκδοθούν άλλα τιμολόγια με τον συγκεκριμένο κωδικό υπαλλήλου.');
+      window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
+      return { ok: false };
     }
+    if (invoiceNumberField) invoiceNumberField.value = formatInvoiceSequenceNumber(nextNumber);
 
     const snapshot = createInvoiceSnapshot(form);
     if (!snapshot.invoiceNumber) {
       window.alert('Συμπλήρωσε αριθμό τιμολογίου πριν την καταχώριση.');
-      return;
+      return { ok: false };
     }
     if (!snapshot.issueDate) {
       window.alert('Συμπλήρωσε ημερομηνία έκδοσης πριν την καταχώριση.');
-      return;
+      return { ok: false };
+    }
+    if (!snapshot.employeeId || !snapshot.employeeCode || !snapshot.fullInvoiceIdentifier) {
+      window.alert('Συμπλήρωσε έγκυρα στοιχεία υπαλλήλου πριν την καταχώριση.');
+      return { ok: false };
+    }
+    if (!invoiceNumberMatchesNext(scope, snapshot.invoiceNumber, freshRecords)) {
+      window.alert('Ο αριθμός τιμολογίου δεν είναι ο επόμενος διαθέσιμος αριθμός για τη συγκεκριμένη Υπηρεσία.');
+      window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
+      return { ok: false };
     }
 
-    const existing = records.find(record => record.invoiceNumber === snapshot.invoiceNumber);
+    const existing = freshRecords.find(record =>
+      record.issuerUnitId === snapshot.issuerUnitId &&
+      record.employeeId === snapshot.employeeId &&
+      record.invoiceNumber === snapshot.invoiceNumber
+    );
     if (existing) {
       window.alert(`Υπάρχει ήδη τιμολόγιο με αριθμό ${snapshot.invoiceNumber}.`);
-      return;
+      return { ok: false };
     }
 
     selectedRecordId = snapshot.id;
-    persist([...records, snapshot]);
+    const nextRecords = [...freshRecords, snapshot];
+    if (!persist(nextRecords)) {
+      window.alert('Δεν ήταν δυνατή η αποθήκευση του αρχείου τιμολογίων. Το τιμολόγιο δεν καταχωρίστηκε.');
+      return { ok: false };
+    }
+    if (!advanceInvoiceCounter(scope, snapshot.invoiceNumber, nextRecords)) {
+      window.alert('Το τιμολόγιο καταχωρίστηκε, αλλά δεν ήταν δυνατή η ενημέρωση του μετρητή. Η επόμενη αρίθμηση θα υπολογιστεί από το αρχείο τιμολογίων.');
+    }
     onFormUpdated?.(form);
     renderDetail(snapshot);
+    notifyTabs('invoice-issued', { scope });
+    return { ok: true, snapshot };
+  }
+
+  registerButton.addEventListener('click', async () => {
+    registerButton.disabled = true;
+    try {
+      const scope = activeScope(form);
+      const result = await withInvoiceIssuanceLock(scope, issueInvoiceWithinLock);
+      if (result?.blocked) window.alert(result.message);
+    } finally {
+      registerButton.disabled = false;
+      window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
+    }
   });
 
   [queryInput, dateFrom, dateTo].forEach(control => {
@@ -252,6 +428,144 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
     dateFrom.value = '';
     dateTo.value = '';
     renderTable();
+  });
+
+  downloadJsonButton.addEventListener('click', () => {
+    const profile = employeeProfileFromForm(form);
+    if (!profile.employeeId || !isEmployeeCodeValid(profile.employeeCode)) {
+      window.alert('Συμπλήρωσε έγκυρο προφίλ υπαλλήλου πριν από τη λήψη αρχείου.');
+      return;
+    }
+
+    const state = readInvoiceNumberState(activeScope(form), records);
+    const exportedAt = new Date().toISOString();
+    const payload = buildEmployeeArchiveExport({
+      records,
+      exportedAt,
+      issuerUnit: {
+        id: getCurrentServiceId(form),
+        code: getCurrentIssuerUnitCode(form),
+        name: form.querySelector('#department')?.value.trim() || ''
+      },
+      employee: {
+        id: profile.employeeId,
+        code: normalizeEmployeeCode(profile.employeeCode),
+        name: profile.employeeName
+      },
+      numbering: state
+    });
+    const date = new Date().toISOString().slice(0, 10);
+    downloadTextFile({
+      filename: `form25-archive-${filenamePart(getCurrentServiceId(form))}-${filenamePart(profile.employeeCode)}-${date}.json`,
+      content: JSON.stringify(payload, null, 2),
+      type: 'application/json;charset=utf-8'
+    });
+  });
+
+  downloadCsvButton.addEventListener('click', () => {
+    const profile = employeeProfileFromForm(form);
+    if (!profile.employeeId || !isEmployeeCodeValid(profile.employeeCode)) {
+      window.alert('Συμπλήρωσε έγκυρο προφίλ υπαλλήλου πριν από τη λήψη αναφοράς.');
+      return;
+    }
+
+    const csv = buildEmployeeArchiveCsv(records, activeScope(form));
+    const date = new Date().toISOString().slice(0, 10);
+    downloadTextFile({
+      filename: `form25-report-${filenamePart(getCurrentServiceId(form))}-${filenamePart(profile.employeeCode)}-${date}.csv`,
+      content: csv,
+      type: 'text/csv;charset=utf-8'
+    });
+  });
+
+  restoreButton.addEventListener('click', () => {
+    restoreInput.value = '';
+    restoreInput.click();
+  });
+
+  restoreInput.addEventListener('change', async () => {
+    const file = restoreInput.files?.[0];
+    if (!file) return;
+
+    try {
+      if (!file.name.toLocaleLowerCase('el').endsWith('.json')) {
+        window.alert('Η επαναφορά δέχεται μόνο αρχεία JSON backup.');
+        return;
+      }
+
+      const parsed = parseEmployeeArchiveBackup(await file.text());
+      if (!parsed.ok) {
+        window.alert(parsed.message);
+        return;
+      }
+
+      const counterKey = employeeInvoiceCounterKey({
+        issuerUnitId: parsed.issuerUnit.id,
+        employeeId: parsed.employee.id
+      });
+      const plan = buildRestorePlan(parsed, {
+        existingRecords: readInvoiceArchive(),
+        existingProfile: readStoredEmployeeProfileForRestore(),
+        existingCounter: readStoredValue(counterKey)
+      });
+      if (!plan.ok) {
+        const conflictDetails = typeof plan.conflictCount === 'number'
+          ? `\nΝέα records: ${plan.newCount}\nΉδη υπάρχοντα: ${plan.existingCount}\nConflicts: ${plan.conflictCount}`
+          : '';
+        window.alert(`${plan.message}${conflictDetails}`);
+        return;
+      }
+
+      const nextText = plan.exhausted ? 'Η σειρά έχει εξαντληθεί.' : formatInvoiceSequenceNumber(plan.nextNumber);
+      const summary = [
+        `Εκδούσα μονάδα: ${plan.issuerUnit.name || plan.issuerUnit.id}`,
+        `Κωδικός υπαλλήλου: ${plan.employee.code}`,
+        `Ονοματεπώνυμο: ${plan.employee.name || '-'}`,
+        `Πλήθος τιμολογίων: ${parsed.records.length}`,
+        `Πρώτος αριθμός: ${plan.firstNumber === null ? '-' : formatInvoiceSequenceNumber(plan.firstNumber)}`,
+        `Τελευταίος αριθμός: ${plan.lastNumber === null ? '-' : formatInvoiceSequenceNumber(plan.lastNumber)}`,
+        `Ημερομηνία export: ${plan.exportedAt || '-'}`,
+        `Επόμενος αριθμός μετά την επαναφορά: ${nextText}`,
+        `Νέα records: ${plan.newCount}`,
+        `Ήδη υπάρχοντα: ${plan.existingCount}`,
+        `Conflicts: ${plan.conflictCount}`,
+        '',
+        'Η επαναφορά θα αποθηκεύσει το προσωπικό προφίλ και το αρχείο τιμολογίων σε αυτόν τον browser. Θέλετε να συνεχίσετε;'
+      ].join('\n');
+
+      if (!window.confirm(summary)) return;
+
+      const restored = applyRestorePlan(plan);
+      if (!restored.ok) {
+        window.alert(restored.message);
+        return;
+      }
+
+      applyEmployeeProfileToForm(form, {
+        employeeId: plan.employee.id,
+        employeeCode: plan.employee.code,
+        employeeName: plan.employee.name
+      });
+      const serviceIdField = form.querySelector('#serviceId');
+      const issuerUnitCodeField = form.querySelector('#issuerUnitCode');
+      const departmentField = form.querySelector('#department');
+      if (serviceIdField) serviceIdField.value = plan.issuerUnit.id;
+      if (issuerUnitCodeField) issuerUnitCodeField.value = plan.issuerUnit.code;
+      if (departmentField && plan.issuerUnit.name) departmentField.value = plan.issuerUnit.name;
+
+      refreshRecords();
+      onFormUpdated?.(form);
+      notifyTabs('archive-restored', { scope: plan.scope });
+      window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
+      window.alert(restored.exhausted
+        ? 'Η επαναφορά ολοκληρώθηκε επιτυχώς. Η προσωπική σειρά έχει εξαντληθεί στο 99999.'
+        : `Η επαναφορά ολοκληρώθηκε επιτυχώς. Επαναφέρθηκαν ${restored.restoredCount} τιμολόγια. Επόμενος αριθμός: ${restored.formattedNextNumber}.`);
+    } catch (error) {
+      console.warn('Unable to restore employee archive', error);
+      window.alert('Δεν ήταν δυνατή η επαναφορά του αρχείου.');
+    } finally {
+      restoreInput.value = '';
+    }
   });
 
   table.addEventListener('click', async event => {
@@ -292,6 +606,13 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
         button.disabled = false;
       }
     }
+  });
+
+  window.addEventListener('invoice-archive:external-update', () => {
+    refreshRecords();
+  });
+  window.addEventListener('storage', event => {
+    if (event.key?.startsWith('eTreasury.form25.')) refreshRecords();
   });
 
   renderTable();

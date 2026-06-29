@@ -161,12 +161,13 @@ assertServiceOnlyPreview('Initial A4 preview');
 
 const cards = [...app.querySelectorAll('.nav-card')];
 assert('Κανένα βασικό κουμπί δεν είναι ενεργό στην αρχική', cards.every(card => !card.hasAttribute('aria-current')));
-assertEqual('Πλήθος κουμπιών πλοήγησης', cards.length, 5);
+assertEqual('Πλήθος κουμπιών πλοήγησης', cards.length, 6);
 assertEqual('Κουμπί 1', cards[0]?.textContent.trim(), 'Αύξων Αριθμός Τιμολογίου');
 assertEqual('Κουμπί 2', cards[1]?.textContent.trim(), 'Στοιχεία Τμήματος / Υπηρεσίας');
 assertEqual('Κουμπί 3', cards[2]?.textContent.trim(), 'Στοιχεία Οφειλέτη / Πελάτη');
-assertEqual('Κουμπί 4', cards[3]?.textContent.trim(), 'Αρχείο Οφειλετών / Πελατών');
-assertEqual('Κουμπί 5', cards[4]?.textContent.trim(), 'Αρχείο Τιμολογίων');
+assertEqual('Κουμπί 4', cards[3]?.textContent.trim(), 'Στοιχεία Χρέωσης / Φ.Π.Α.');
+assertEqual('Κουμπί 5', cards[4]?.textContent.trim(), 'Αρχείο Οφειλετών / Πελατών');
+assertEqual('Κουμπί 6', cards[5]?.textContent.trim(), 'Αρχείο Τιμολογίων');
 assert('Τα στοιχεία πλοήγησης είναι κουμπιά', cards.every(card => card.tagName === 'BUTTON' && card.type === 'button'));
 assert('Δεν υπάρχει πλέον η καρτέλα Έκδοση Τιμολογίου', !cards.some(card => card.textContent.trim() === 'Έκδοση Τιμολογίου'));
 assert('Δεν υπάρχει κουμπί προβολής τιμολογίου', !cards.some(card => card.dataset.viewTarget === 'preview'));
@@ -234,11 +235,29 @@ assert('Η επιλογή οφειλέτη για το τρέχον τιμολό
 assertServiceOnlyPreview('Debtor tab before invoice input');
 
 cards[3].click();
+assertEqual('Ενεργή προβολή στοιχείων χρέωσης', app.querySelector('.workspace')?.dataset.activeView, 'charge');
+['description', 'billingPeriod', 'netAmount', 'vatRate', 'vatAmount', 'grossAmount', 'paymentType'].forEach(id => {
+  assert(`Το πεδίο ${id} εμφανίζεται στα στοιχεία χρέωσης`, isVisible(fieldWrapper(id)));
+});
+['invoiceNumber', 'issueDate', 'debtorName', 'signDate'].forEach(id => {
+  assert(`Το πεδίο ${id} δεν εμφανίζεται στα στοιχεία χρέωσης`, !isVisible(fieldWrapper(id)));
+});
+assert('Το ποσό Φ.Π.Α. είναι μόνο για ανάγνωση', app.getElementById('vatAmount')?.readOnly);
+assert('Το συνολικό ποσό είναι μόνο για ανάγνωση', app.getElementById('grossAmount')?.readOnly);
+app.getElementById('netAmount').value = '100';
+app.getElementById('netAmount').dispatchEvent(new Event('input', { bubbles: true }));
+assertEqual('Ο αυτόματος υπολογισμός εμφανίζει ποσό Φ.Π.Α.', app.getElementById('vatAmount')?.value, '19.00');
+assertEqual('Ο αυτόματος υπολογισμός εμφανίζει συνολικό ποσό', app.getElementById('grossAmount')?.value, '119.00');
+assertEqual('Η προεπισκόπηση ενημερώνει τον καθαρό αριθμό', outputText('netEuros'), '100');
+assertEqual('Η προεπισκόπηση ενημερώνει τον Φ.Π.Α.', outputText('vatEuros'), '19');
+assertEqual('Η προεπισκόπηση ενημερώνει το σύνολο', outputText('grossEuros'), '119');
+
+cards[4].click();
 assertEqual('Ενεργή προβολή πελατών', app.querySelector('.workspace')?.dataset.activeView, 'customers');
 assert('Πάνελ πελατών υπάρχει', isVisible(app.querySelector('.customers-panel')));
 assertServiceOnlyPreview('Customers tab before invoice input');
 
-cards[4].click();
+cards[5].click();
 assertEqual('Ενεργή προβολή αρχείου τιμολογίων', app.querySelector('.workspace')?.dataset.activeView, 'archive');
 assert('Πάνελ αρχείου τιμολογίων υπάρχει', isVisible(app.querySelector('.invoice-archive-panel')));
 assertServiceOnlyPreview('Archive tab before invoice input');
@@ -255,7 +274,7 @@ assertEqual('Debtor input starts filling the A4 preview', outputText('debtorName
 assertEqual('Το Α4 δεν εμφανίζει 00000 πριν την καταχώριση', outputText('invoiceNumber'), '');
 app.querySelector('[data-view-close]').click();
 
-cards[4].click();
+cards[5].click();
 const registerButton = app.querySelector('.invoice-archive-panel .button-primary');
 registerButton.click();
 assertEqual('Η επιτυχής καταχώριση αποδίδει αριθμό στο πεδίο', app.getElementById('invoiceNumber')?.value, '00001');
