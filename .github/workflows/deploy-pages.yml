@@ -53,6 +53,10 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
 
+      - name: Include release status styles
+        shell: bash
+        run: cat src/styles/release-status.css >> src/styles/app.css
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
