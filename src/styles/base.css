@@ -80,8 +80,9 @@ button:focus-visible {
   color: #526078;
 }
 
+/* Hidden until the legal pages are ready. */
 .app-footer .footer-links {
-  justify-content: center;
+  display: none;
 }
 
 /* Compact values in the automatic invoice-numbering summary. */
