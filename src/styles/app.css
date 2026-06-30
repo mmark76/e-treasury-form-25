@@ -425,11 +425,13 @@ body {
 }
 
 .workspace[data-active-view="numbering"] .numbering-panel,
-.workspace[data-active-view="numbering"] .numbering-field {
+.workspace[data-active-view="numbering"] .numbering-field,
+.workspace[data-active-view="numbering"] .issue-details-fieldset {
   display: block;
 }
 
 .workspace[data-active-view="numbering"] .template-controls,
+.workspace[data-active-view="numbering"] .service-setting-field,
 .workspace[data-active-view="debtor"] .service-setting-field,
 .workspace[data-active-view="debtor"] .charge-fieldset,
 .workspace[data-active-view="debtor"] .signature-account-fieldset {

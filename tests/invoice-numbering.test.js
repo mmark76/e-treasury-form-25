@@ -64,7 +64,7 @@ function assertNotEqual(name, actual, unexpected) {
 function record(id, { issuerUnitId = DEFAULT_SERVICE_ID, employeeId, employeeCode, employeeName = 'Employee', invoiceNumber }) {
   const formattedInvoiceNumber = formatInvoiceSequenceNumber(invoiceNumber);
   const fullInvoiceIdentifier = buildFullInvoiceIdentifier({
-    issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+    issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
     employeeCode,
     invoiceNumber
   });
@@ -73,7 +73,7 @@ function record(id, { issuerUnitId = DEFAULT_SERVICE_ID, employeeId, employeeCod
     serviceId: issuerUnitId,
     serviceName: 'Unit',
     issuerUnitId,
-    issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+    issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
     issuerUnitName: 'Unit',
     employeeId,
     employeeCode,
@@ -89,7 +89,7 @@ function record(id, { issuerUnitId = DEFAULT_SERVICE_ID, employeeId, employeeCod
     grossAmount: 11.9,
     formValues: {
       serviceId: issuerUnitId,
-      issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+      issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
       employeeId,
       employeeCode,
       employeeName,
@@ -106,7 +106,7 @@ function backupPayload({ employee = employeeA, records: backupRecords, numbering
     exportedAt: '2026-06-29T00:00:00.000Z',
     issuerUnit: {
       id: employee.issuerUnitId,
-      code: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+      code: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
       name: 'Unit'
     },
     employee: {
@@ -144,15 +144,15 @@ assert('Slash employee code is rejected', Boolean(validateEmployeeCode('ΜΜ/1')
 assert('Space employee code is rejected', Boolean(validateEmployeeCode('Μ Μ')));
 
 assertEqual('Builds full invoice identifier', buildFullInvoiceIdentifier({
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   employeeCode: 'ΜΜ',
   invoiceNumber: 1
-}), 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
+}), 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001');
 assertEqual('Builds full invoice identifier with five-digit number', buildFullInvoiceIdentifier({
-  issuerUnitCode: '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u0395',
+  issuerUnitCode: '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u039a\u0395',
   employeeCode: '\u039c\u039c',
   invoiceNumber: '00003'
-}), '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u0395-\u039c\u039c / 00003');
+}), '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u039a\u0395-\u039c\u039c / 00003');
 assertEqual('Builds short invoice identifier', buildShortInvoiceIdentifier({
   employeeCode: '\u039c\u039c',
   invoiceNumber: '00003'
@@ -162,7 +162,7 @@ assertEqual('Short invoice identifier is blank without a valid invoice number', 
   invoiceNumber: ''
 }), '');
 assertEqual('Full invoice identifier is blank without a valid invoice number', buildFullInvoiceIdentifier({
-  issuerUnitCode: '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u0395',
+  issuerUnitCode: '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u039a\u0395',
   employeeCode: '\u039c\u039c',
   invoiceNumber: ''
 }), '');
@@ -253,7 +253,7 @@ assertEqual('Counter advances after archive save', readNextInvoiceNumber(employe
 
 localStorage.clear();
 const reservation = reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   issuerUnitName: 'Unit',
   employeeCode: employeeA.employeeCode,
   employeeName: employeeA.employeeName,
@@ -266,7 +266,7 @@ assertEqual('Reserved draft status is stored', readInvoiceArchive()[0].status, '
 assertEqual('Reload reuses active reservation', findActiveInvoiceReservation(employeeA, readInvoiceArchive()).formattedInvoiceNumber, '00001');
 assertEqual('Reservation advances the next available number', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 2);
 const reusedReservation = reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   employeeCode: employeeA.employeeCode
 });
 assert('Existing active reservation is reused', reusedReservation.existing);
@@ -281,7 +281,7 @@ assertEqual('Issued conversion updates status', readInvoiceArchive()[0].status, 
 assertEqual('Next number remains after issued conversion', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 2);
 
 const secondReservation = reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   issuerUnitName: 'Unit',
   employeeCode: employeeA.employeeCode,
   employeeName: employeeA.employeeName
@@ -294,7 +294,7 @@ assertEqual('Cancelled reservation is persisted', readInvoiceArchive().find(item
 assert('Cancelled reservation stores cancellation timestamp', Boolean(readInvoiceArchive().find(item => item.id === secondReservation.record.id).cancelledAt));
 assertEqual('Cancelled reservation stores cancellation reason', readInvoiceArchive().find(item => item.id === secondReservation.record.id).cancellationReason, 'test cancellation');
 const thirdReservation = reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   issuerUnitName: 'Unit',
   employeeCode: employeeA.employeeCode,
   employeeName: employeeA.employeeName
@@ -303,7 +303,7 @@ assertEqual('Cancelled number is not reused', thirdReservation.record.formattedI
 
 localStorage.clear();
 const cancellationFailureReservation = reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   issuerUnitName: 'Unit',
   employeeCode: employeeA.employeeCode,
   employeeName: employeeA.employeeName
@@ -326,7 +326,7 @@ Storage.prototype.setItem = (key, value) => {
   return failingReservationSetItem.call(localStorage, key, value);
 };
 const failedReservation = reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   employeeCode: employeeA.employeeCode
 });
 assert('Reservation write failure is reported', !failedReservation.ok && failedReservation.writeFailed);
@@ -342,12 +342,12 @@ const reservationLocks = {
   }
 };
 const firstReserved = await withInvoiceIssuanceLock(employeeA, () => reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   employeeCode: employeeA.employeeCode
 }), { locks: reservationLocks });
 issueActiveInvoiceReservation(employeeA, record('locked-reserved-1', { ...employeeA, invoiceNumber: firstReserved.record.invoiceNumber }), readInvoiceArchive());
 const secondReserved = await withInvoiceIssuanceLock(employeeA, () => reserveInvoiceNumber(employeeA, {
-  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ',
   employeeCode: employeeA.employeeCode
 }), { locks: reservationLocks });
 assertEqual('First locked reservation gets current next number', firstReserved.record.formattedInvoiceNumber, '00001');
@@ -381,7 +381,7 @@ const exportRecords = [
 ];
 const exportPayload = buildEmployeeArchiveExport({
   records: exportRecords,
-  issuerUnit: { id: DEFAULT_SERVICE_ID, code: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ', name: 'Unit' },
+  issuerUnit: { id: DEFAULT_SERVICE_ID, code: 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ', name: 'Unit' },
   employee: { id: employeeA.employeeId, code: employeeA.employeeCode, name: employeeA.employeeName },
   numbering: readInvoiceNumberState(employeeA, exportRecords),
   exportedAt: '2026-06-29T00:00:00.000Z'
@@ -392,9 +392,9 @@ assertEqual('JSON export includes numbering state', exportPayload.numbering.next
 
 const csv = buildEmployeeArchiveCsv(exportRecords, employeeA);
 assert('CSV export includes UTF-8 BOM', csv.startsWith('\uFEFF'));
-assert('CSV export includes Greek full identifier', csv.includes('ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001'));
+assert('CSV export includes Greek full identifier', csv.includes('ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001'));
 assert('CSV export includes visible Greek status label', csv.includes('ΕΚΔΟΘΕΝ / ΕΓΚΥΡΟ'));
-assert('CSV export excludes other employee records', !csv.includes('ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΑΠ1 / 00001'));
+assert('CSV export excludes other employee records', !csv.includes('ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΑΠ1 / 00001'));
 assertEqual('Legacy record summary normalizes missing status to issued', recordSummary(exportRecords[0]).statusLabel, 'ΕΚΔΟΘΕΝ / ΕΓΚΥΡΟ');
 
 assertEqual('Empty serviceId normalizes to the default', sanitizeServiceId(''), DEFAULT_SERVICE_ID);
@@ -418,7 +418,7 @@ assert('Restore in empty browser succeeds', restoreResult.ok);
 assertEqual('Restore writes archived invoices', readInvoiceArchive().length, 2);
 assertEqual('Restore continues from highest invoice + 1', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 3);
 assertEqual('Restored profile employeeId is original', JSON.parse(localStorage.getItem(EMPLOYEE_PROFILE_KEY)).employeeId, employeeA.employeeId);
-assertEqual('Full invoice identifier is regenerated', readInvoiceArchive()[0].fullInvoiceIdentifier, 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
+assertEqual('Full invoice identifier is regenerated', readInvoiceArchive()[0].fullInvoiceIdentifier, 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001');
 
 localStorage.clear();
 const exhaustedBackup = backupPayload({

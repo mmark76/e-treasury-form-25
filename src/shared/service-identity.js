@@ -1,6 +1,6 @@
 export const DEFAULT_SERVICE_ID = 'STATE-FAIR-MANAGEMENT';
 export const LEGACY_DEFAULT_SERVICE_IDS = ['STATE-FAIR-SPACE-MANAGEMENT'];
-export const DEFAULT_ISSUER_UNIT_CODE = 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ';
+export const DEFAULT_ISSUER_UNIT_CODE = 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ';
 
 export function sanitizeServiceId(value) {
   const text = String(value ?? '').trim().toUpperCase();

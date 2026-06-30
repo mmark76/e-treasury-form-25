@@ -186,7 +186,7 @@ assertServiceOnlyPreview('Initial A4 preview');
 const cards = [...app.querySelectorAll('.nav-card')];
 assert('Κανένα βασικό κουμπί δεν είναι ενεργό στην αρχική', cards.every(card => !card.hasAttribute('aria-current')));
 assertEqual('Πλήθος κουμπιών πλοήγησης', cards.length, 6);
-assertEqual('Κουμπί 1', cards[0]?.textContent.trim(), 'Αύξων Αριθμός Τιμολογίου');
+assertEqual('Κουμπί 1', cards[0]?.textContent.trim(), 'Αριθμός και Ημερομηνία Τιμολογίου');
 assertEqual('Κουμπί 2', cards[1]?.textContent.trim(), 'Στοιχεία Τμήματος / Υπηρεσίας');
 assertEqual('Κουμπί 3', cards[2]?.textContent.trim(), 'Στοιχεία Οφειλέτη / Πελάτη');
 assertEqual('Κουμπί 4', cards[3]?.textContent.trim(), 'Στοιχεία Χρέωσης / Φ.Π.Α.');
@@ -238,7 +238,7 @@ assert('Δεν υπάρχει ξεχωριστή ένδειξη τρέχοντο
 assert('Το πεδίο αριθμού τιμολογίου δεν εμφανίζει 00000 πριν την καταχώριση', app.getElementById('invoiceNumber')?.value !== '00000');
 assert('Η παλιά ένδειξη Στοιχεία έκδοσης δεν εμφανίζεται στην αρίθμηση', ![...app.querySelectorAll('legend')].some(legend => isVisible(legend) && legend.textContent.trim() === 'Στοιχεία έκδοσης'));
 assertEqual('Ο σύντομος δεσμευμένος αριθμός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('invoiceNumber'), 'ΜΜ/00001');
-assertEqual('Ο πλήρης δεσμευμένος κωδικός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
+assertEqual('Ο πλήρης δεσμευμένος κωδικός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001');
 assert('Το πεδίο αύξοντα αριθμού εμφανίζεται στην αρίθμηση', isVisible(fieldWrapper('invoiceNumber')));
 const nextNumberCard = app.querySelector('.numbering-summary div');
 const invoiceNumberCard = fieldWrapper('invoiceNumber');
@@ -251,6 +251,10 @@ const invoiceNumberStyle = app.defaultView.getComputedStyle(invoiceNumberCard);
   assert(`Το πεδίο ${id} δεν εμφανίζεται στην αρίθμηση`, !isVisible(fieldWrapper(id)));
 });
 assert('Ο συντελεστής Φ.Π.Α. δεν έχει αποθήκευση προτύπου υπηρεσίας', !app.getElementById('vatRate')?.hasAttribute('data-template-key') && !fieldWrapper('vatRate')?.querySelector('.template-controls'));
+assert('Η ημερομηνία έκδοσης εμφανίζεται στην αρίθμηση', isVisible(fieldWrapper('issueDate')));
+['department', 'serviceId', 'issuerUnitCode', 'chapterCode', 'vatRegistration', 'serviceAddress', 'employeeName', 'employeeCode'].forEach(id => {
+  assert(`Το υπηρεσιακό πεδίο ${id} δεν εμφανίζεται στην αρίθμηση`, !isVisible(fieldWrapper(id)));
+});
 cards[0].click();
 assertEqual('Δεύτερο πάτημα στο ενεργό κουμπί κλείνει τη στήλη', app.querySelector('.workspace')?.dataset.activeView, 'home');
 assert('Η πρόσθετη στήλη κρύβεται μετά το δεύτερο πάτημα', !isVisible(app.querySelector('.editor-panel')));
@@ -313,7 +317,7 @@ app.getElementById('debtorName').value = 'SUN TOWER PLAZA LTD';
 app.getElementById('debtorName').dispatchEvent(new Event('input', { bubbles: true }));
 assertEqual('Debtor input starts filling the A4 preview', outputText('debtorName'), 'SUN TOWER PLAZA LTD');
 assertEqual('Το Α4 εμφανίζει τον δεσμευμένο σύντομο κωδικό πριν την καταχώριση', outputText('invoiceNumber'), 'ΜΜ/00001');
-assertEqual('Το Α4 εμφανίζει τον δεσμευμένο πλήρη κωδικό πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
+assertEqual('Το Α4 εμφανίζει τον δεσμευμένο πλήρη κωδικό πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001');
 assertEqual('Το watermark είναι κενό για δεσμευμένο προσχέδιο', outputText('cancelledWatermark'), '');
 app.querySelector('[data-view-close]').click();
 

@@ -277,7 +277,7 @@ function initializeViewShell({ renderPreview }) {
   if (!landingView || !applicationView || !workspace) return;
 
   const viewTitles = {
-    numbering: 'Αύξων Αριθμός Τιμολογίου',
+    numbering: 'Αριθμός και Ημερομηνία Τιμολογίου',
     service: 'Στοιχεία Τμήματος / Υπηρεσίας',
     debtor: 'Στοιχεία Οφειλέτη / Πελάτη',
     charge: 'Στοιχεία Χρέωσης / Φ.Π.Α.',
