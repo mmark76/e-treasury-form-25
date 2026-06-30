@@ -83,3 +83,47 @@ button:focus-visible {
 .app-footer .footer-links {
   justify-content: center;
 }
+
+/* Compact values in the automatic invoice-numbering summary. */
+body .numbering-summary dt,
+body .invoice-number-label {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+body .numbering-summary dd,
+body .invoice-number-card input {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+body #invoice-number-status {
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+/* Keep the clear-fields action neutral, but visibly identifiable as a button. */
+body #clear-form.button.button-secondary {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #172033;
+  box-shadow: none;
+}
+
+body #clear-form.button.button-secondary:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+body #clear-form.button.button-secondary:focus-visible {
+  border-color: #225dab;
+  outline: 3px solid rgba(34, 93, 171, 0.2);
+  outline-offset: 2px;
+}
+
+body #clear-form.button.button-secondary:disabled {
+  border-color: #d7deea;
+  background: #f8fafc;
+  color: #7b879a;
+  cursor: not-allowed;
+}
