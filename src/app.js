@@ -500,6 +500,14 @@ function initializeApp() {
     updateInvoiceNumberDisplay();
   }
 
+  function hasActiveInvoiceReservation() {
+    return Boolean(findActiveInvoiceReservation(employeeScopeForForm(form), readInvoiceArchive()));
+  }
+
+  function canReserveDraftFromInput() {
+    return form.dataset.invoiceStatus !== 'issued' && form.dataset.invoiceStatus !== 'cancelled';
+  }
+
   function applyReservationToForm(reservation) {
     const invoiceNumber = form.querySelector('#invoiceNumber');
     if (invoiceNumber && reservation?.formattedInvoiceNumber) invoiceNumber.value = reservation.formattedInvoiceNumber;
@@ -535,6 +543,12 @@ function initializeApp() {
 
       return result;
     });
+  }
+
+  function ensureReservationForInvoiceInput() {
+    if (!canReserveDraftFromInput()) return;
+    if (hasActiveInvoiceReservation()) return;
+    void ensureActiveInvoiceReservation();
   }
 
   async function cancelCurrentReservation({ reason = '' } = {}) {
@@ -576,6 +590,7 @@ function initializeApp() {
     updateEmployeeProfileLock(updatedForm);
     saveDraft(updatedForm);
     updateInvoiceNumberDisplay();
+    if (hasInvoiceContentFields(updatedForm)) ensureReservationForInvoiceInput();
   }
 
   initializeTabCoordination(() => {
@@ -601,14 +616,14 @@ function initializeApp() {
   });
   renderCurrentPreview();
   updateInvoiceNumberDisplay();
-  void ensureActiveInvoiceReservation();
 
   form.addEventListener('input', event => {
+    const updatesInvoicePreview = inputBelongsToInvoicePreview(event.target);
     if (event.target?.id === 'employeeCode') {
       event.target.value = normalizeEmployeeCode(event.target.value);
       validateEmployeeProfileFields(form);
     }
-    if (inputBelongsToInvoicePreview(event.target)) previewHasInvoiceData = true;
+    if (updatesInvoicePreview) previewHasInvoiceData = true;
     if (event.target?.id === 'employeeCode' || event.target?.id === 'employeeName') {
       persistUnlockedEmployeeProfile(form);
       updateEmployeeProfileLock(form);
@@ -619,14 +634,19 @@ function initializeApp() {
     saveDraft(form);
     updateInvoiceNumberDisplay();
     renderCurrentPreview();
+    if (updatesInvoicePreview) ensureReservationForInvoiceInput();
   });
 
   form.addEventListener('change', event => {
+    const updatesInvoicePreview = inputBelongsToInvoicePreview(event.target);
+    if (event.target?.id === 'serviceId') {
+      normalizeServiceIdField(form);
+    }
     if (event.target?.id === 'employeeCode') {
       event.target.value = normalizeEmployeeCode(event.target.value);
       validateEmployeeProfileFields(form);
     }
-    if (inputBelongsToInvoicePreview(event.target)) previewHasInvoiceData = true;
+    if (updatesInvoicePreview) previewHasInvoiceData = true;
     if (event.target?.id === 'employeeCode' || event.target?.id === 'employeeName') {
       persistUnlockedEmployeeProfile(form);
       updateEmployeeProfileLock(form);
@@ -637,6 +657,7 @@ function initializeApp() {
     saveDraft(form);
     updateInvoiceNumberDisplay();
     renderCurrentPreview();
+    if (updatesInvoicePreview) ensureReservationForInvoiceInput();
   });
 
   clearButton.addEventListener('click', async () => {
@@ -686,7 +707,6 @@ function initializeApp() {
       previewHasInvoiceData = false;
       updateInvoiceNumberDisplay();
       renderCurrentPreview();
-      await ensureActiveInvoiceReservation();
     } finally {
       cancelInvoiceButton.disabled = false;
     }

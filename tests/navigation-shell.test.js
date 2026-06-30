@@ -81,6 +81,8 @@ function fieldWrapper(id) {
 
 assertEqual('Τίτλος εφαρμογής', app.title, 'e-Treasury Form 25');
 assertEqual('Κείμενο κεφαλίδας', app.querySelector('.app-header h1')?.textContent.trim(), 'e-Treasury Form 25');
+assertEqual('Η κεφαλίδα εμφανίζει ένδειξη πιλοτικής φάσης', app.getElementById('release-status-badge')?.textContent.trim(), 'ΠΙΛΟΤΙΚΗ ΕΚΔΟΣΗ · ΥΠΟ ΔΟΚΙΜΗ');
+assert('Η ένδειξη πιλοτικής φάσης έχει προσβάσιμο μήνυμα', app.getElementById('release-status-badge')?.getAttribute('aria-label')?.includes('πιλοτική φάση'));
 assert('Κουμπί Ρυθμίσεις Σελίδας', app.getElementById('page-settings'));
 const servicePreviewOutputs = new Set([
   'department',
@@ -218,27 +220,24 @@ assert('Το έντυπο διατηρεί αναλογία Α4', Math.abs((prev
 
 cards[0].click();
 assertEqual('Ενεργή προβολή αρίθμησης', app.querySelector('.workspace')?.dataset.activeView, 'numbering');
-await waitForCondition('Ο δεσμευμένος αριθμός δεν εμφανίστηκε στο προσχέδιο.', () => app.getElementById('invoiceNumber')?.value === '00001');
 assert('Η πρόσθετη στήλη ανοίγει στην αρίθμηση', isVisible(app.querySelector('.editor-panel')));
 assert('Το ενεργό βασικό κουμπί επισημαίνεται', cards[0].getAttribute('aria-current') === 'page');
 assert('Η αρίθμηση κρατά ορατή την προεπισκόπηση', isVisible(app.querySelector('.preview-panel')));
 assert('Τα IDs ενεργειών διατηρούνται', app.getElementById('clear-form') && app.getElementById('cancel-invoice') && app.getElementById('register-invoice') && app.getElementById('print-form') && app.getElementById('download-pdf'));
 assertServiceOnlyPreview('Numbering tab before invoice input');
-assertEqual('Ο πρώτος δεσμευμένος αριθμός είναι ΜΜ/00001', app.getElementById('next-invoice-number')?.textContent.trim(), 'ΜΜ/00001');
-assertEqual('Η κατάσταση αριθμού δείχνει προσχέδιο', app.getElementById('invoice-number-status')?.textContent.trim(), 'ΠΡΟΣΧΕΔΙΟ / ΔΕΣΜΕΥΜΕΝΟ');
-assertEqual('Η ένδειξη πάνω από το έντυπο δείχνει τον ενεργό σύντομο αριθμό', app.getElementById('active-invoice-status-number')?.textContent.trim(), 'ΜΜ/00001');
-assertEqual('Η ένδειξη πάνω από το έντυπο δείχνει badge προσχεδίου', app.getElementById('active-invoice-status-badge')?.textContent.trim(), 'ΠΡΟΣΧΕΔΙΟ / ΔΕΣΜΕΥΜΕΝΟ');
-assert('Το badge προσχεδίου έχει την κατάλληλη class', app.getElementById('active-invoice-status-badge')?.classList.contains('invoice-status-reserved'));
+assertEqual('Ο πρώτος διαθέσιμος αριθμός είναι ΜΜ/00001', app.getElementById('next-invoice-number')?.textContent.trim(), 'ΜΜ/00001');
+assertEqual('Η κατάσταση αριθμού είναι κενή πριν από δέσμευση draft', app.getElementById('invoice-number-status')?.textContent.trim(), '');
+assert('Η ένδειξη πάνω από το έντυπο κρύβεται πριν από δέσμευση draft', app.getElementById('active-invoice-status')?.hidden);
 assert('Ο αριθμός τιμολογίου είναι μόνο για ανάγνωση', app.getElementById('invoiceNumber')?.readOnly);
-assertEqual('Το πεδίο αριθμού τιμολογίου έχει δεσμευμένο αριθμό πριν την καταχώριση', app.getElementById('invoiceNumber')?.value, '00001');
+assertEqual('Το πεδίο αριθμού τιμολογίου είναι κενό πριν από την πρώτη εισαγωγή', app.getElementById('invoiceNumber')?.value, '');
 assertEqual('Το πεδίο αριθμού τιμολογίου δείχνει placeholder δέσμευσης', app.getElementById('invoiceNumber')?.placeholder, 'Δεσμεύεται αυτόματα');
-assert('Η εκδούσα μονάδα κλειδώνει όσο υπάρχει ενεργό δεσμευμένο draft', app.getElementById('issuerUnitCode')?.readOnly);
-assert('Το serviceId κλειδώνει όσο υπάρχει ενεργό δεσμευμένο draft', app.getElementById('serviceId')?.readOnly);
+assert('Η εκδούσα μονάδα παραμένει επεξεργάσιμη πριν από δέσμευση draft', !app.getElementById('issuerUnitCode')?.readOnly);
+assert('Το serviceId παραμένει επεξεργάσιμο πριν από δέσμευση draft', !app.getElementById('serviceId')?.readOnly);
 assert('Δεν υπάρχει ξεχωριστή ένδειξη τρέχοντος αριθμού τιμολογίου', !app.getElementById('current-invoice-number'));
 assert('Το πεδίο αριθμού τιμολογίου δεν εμφανίζει 00000 πριν την καταχώριση', app.getElementById('invoiceNumber')?.value !== '00000');
 assert('Η παλιά ένδειξη Στοιχεία έκδοσης δεν εμφανίζεται στην αρίθμηση', ![...app.querySelectorAll('legend')].some(legend => isVisible(legend) && legend.textContent.trim() === 'Στοιχεία έκδοσης'));
-assertEqual('Ο σύντομος δεσμευμένος αριθμός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('invoiceNumber'), 'ΜΜ/00001');
-assertEqual('Ο πλήρης δεσμευμένος κωδικός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001');
+assertEqual('Ο σύντομος αριθμός δεν εμφανίζεται στο Α4 πριν από δέσμευση draft', outputText('invoiceNumber'), '');
+assertEqual('Ο πλήρης κωδικός δεν εμφανίζεται στο Α4 πριν από δέσμευση draft', outputText('fullInvoiceIdentifier'), '');
 assert('Το πεδίο αύξοντα αριθμού εμφανίζεται στην αρίθμηση', isVisible(fieldWrapper('invoiceNumber')));
 const nextNumberCard = app.querySelector('.numbering-summary div');
 const invoiceNumberCard = fieldWrapper('invoiceNumber');
@@ -266,6 +265,8 @@ assertServiceOnlyPreview('Service tab before invoice input');
 ['department', 'chapterCode', 'vatRegistration', 'serviceAddress', 'servicePostalCode', 'revenueAccount', 'signatoryName'].forEach(id => {
   assert(`Η ρύθμιση ${id} εμφανίζεται στα στοιχεία υπηρεσίας`, isVisible(fieldWrapper(id)));
 });
+assert('Το serviceId είναι επεξεργάσιμο πριν από δέσμευση draft', !app.getElementById('serviceId')?.readOnly);
+assert('Ο κωδικός εκδούσας μονάδας είναι επεξεργάσιμος πριν από δέσμευση draft', !app.getElementById('issuerUnitCode')?.readOnly);
 ['invoiceNumber', 'issueDate', 'debtorName', 'netAmount', 'vatRate', 'signDate'].forEach(id => {
   assert(`Το πεδίο τιμολογίου ${id} δεν εμφανίζεται στα στοιχεία υπηρεσίας`, !isVisible(fieldWrapper(id)));
 });
@@ -315,9 +316,12 @@ assertServiceOnlyPreview('Home after closing tabs before invoice input');
 cards[2].click();
 app.getElementById('debtorName').value = 'SUN TOWER PLAZA LTD';
 app.getElementById('debtorName').dispatchEvent(new Event('input', { bubbles: true }));
+await waitForCondition('Ο δεσμευμένος αριθμός δεν εμφανίστηκε μετά την πρώτη εισαγωγή τιμολογίου.', () => app.getElementById('invoiceNumber')?.value === '00001');
 assertEqual('Debtor input starts filling the A4 preview', outputText('debtorName'), 'SUN TOWER PLAZA LTD');
 assertEqual('Το Α4 εμφανίζει τον δεσμευμένο σύντομο κωδικό πριν την καταχώριση', outputText('invoiceNumber'), 'ΜΜ/00001');
 assertEqual('Το Α4 εμφανίζει τον δεσμευμένο πλήρη κωδικό πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΚΕ-ΜΜ / 00001');
+assert('Η εκδούσα μονάδα κλειδώνει μετά τη δέσμευση draft', app.getElementById('issuerUnitCode')?.readOnly);
+assert('Το serviceId κλειδώνει μετά τη δέσμευση draft', app.getElementById('serviceId')?.readOnly);
 assertEqual('Το watermark είναι κενό για δεσμευμένο προσχέδιο', outputText('cancelledWatermark'), '');
 app.querySelector('[data-view-close]').click();
 
@@ -337,11 +341,13 @@ app.getElementById('debtorName').dispatchEvent(new Event('input', { bubbles: tru
 app.getElementById('netAmount').value = '100';
 app.getElementById('netAmount').dispatchEvent(new Event('input', { bubbles: true }));
 app.getElementById('cancel-invoice').click();
-await waitForCondition('Η ακύρωση δεν απέδωσε νέο δεσμευμένο αριθμό.', () => app.getElementById('invoiceNumber')?.value === '00002');
-assertEqual('Η ακύρωση ξεκινά το επόμενο draft', app.getElementById('invoiceNumber')?.value, '00002');
-assertEqual('Η ακύρωση δεν επαναχρησιμοποιεί τον ακυρωμένο σύντομο κωδικό', outputText('invoiceNumber'), `${expectedEmployeeCode}/00002`);
-assertEqual('Η ακύρωση δεν επαναχρησιμοποιεί τον ακυρωμένο πλήρη κωδικό', outputText('fullInvoiceIdentifier'), `${expectedIssuerUnitCode}-${expectedEmployeeCode} / 00002`);
-assertEqual('Το watermark παραμένει κενό στο νέο draft μετά την ακύρωση', outputText('cancelledWatermark'), '');
+await waitForCondition('Η ακύρωση δεν καθάρισε τον δεσμευμένο αριθμό.', () => app.getElementById('invoiceNumber')?.value === '');
+assertEqual('Η ακύρωση αφήνει κενό το πεδίο αριθμού μέχρι νέα εισαγωγή', app.getElementById('invoiceNumber')?.value, '');
+assertEqual('Η ακύρωση αφήνει κενό τον σύντομο κωδικό στο Α4 μέχρι νέα εισαγωγή', outputText('invoiceNumber'), '');
+assertEqual('Η ακύρωση αφήνει κενό τον πλήρη κωδικό στο Α4 μέχρι νέα εισαγωγή', outputText('fullInvoiceIdentifier'), '');
+assertEqual('Το watermark παραμένει κενό μετά την ακύρωση και τον καθαρισμό', outputText('cancelledWatermark'), '');
+assert('Η εκδούσα μονάδα ξεκλειδώνει μετά την ακύρωση', !app.getElementById('issuerUnitCode')?.readOnly);
+assert('Το serviceId ξεκλειδώνει μετά την ακύρωση', !app.getElementById('serviceId')?.readOnly);
 
 cards[5].click();
 const registerButton = app.getElementById('register-invoice');
@@ -353,6 +359,7 @@ app.getElementById('debtorName').value = 'SUN TOWER PLAZA LTD';
 app.getElementById('debtorName').dispatchEvent(new Event('input', { bubbles: true }));
 app.getElementById('netAmount').value = '100';
 app.getElementById('netAmount').dispatchEvent(new Event('input', { bubbles: true }));
+await waitForCondition('Το νέο draft δεν δεσμεύτηκε μετά τη νέα εισαγωγή τιμολογίου.', () => app.getElementById('invoiceNumber')?.value === '00002');
 registerButton.click();
 await waitForCondition('Η οριστικοποίηση δεν ενημέρωσε την κατάσταση σε εκδοθέν.', () => app.getElementById('active-invoice-status-badge')?.textContent.trim() === 'ΕΚΔΟΘΕΝ / ΕΓΚΥΡΟ');
 assertEqual('Η επιτυχής καταχώριση αποδίδει τον επόμενο μη ακυρωμένο αριθμό στο πεδίο', app.getElementById('invoiceNumber')?.value, '00002');
