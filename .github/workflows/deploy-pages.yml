@@ -24,6 +24,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Stamp build metadata
+        shell: bash
+        run: |
+          BUILD_TIMESTAMP="$(TZ=Asia/Nicosia date +'%d%m%Y_%H%M')"
+          COMMIT_HASH="${GITHUB_SHA::7}"
+          python - "$BUILD_TIMESTAMP" "$COMMIT_HASH" <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          path = Path('src/config/version.js')
+          text = path.read_text(encoding='utf-8')
+          text, timestamp_count = re.subn(
+              r"export const BUILD_TIMESTAMP = '[^']*';",
+              f"export const BUILD_TIMESTAMP = '{sys.argv[1]}';",
+              text,
+              count=1,
+          )
+          text, commit_count = re.subn(
+              r"export const COMMIT_HASH = '[^']*';",
+              f"export const COMMIT_HASH = '{sys.argv[2]}';",
+              text,
+              count=1,
+          )
+          if timestamp_count != 1 or commit_count != 1:
+              raise SystemExit('Unable to stamp build metadata in src/config/version.js')
+          path.write_text(text, encoding='utf-8')
+          PY
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
