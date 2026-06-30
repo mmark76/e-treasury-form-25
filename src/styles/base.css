@@ -127,3 +127,20 @@ body #clear-form.button.button-secondary:disabled {
   color: #7b879a;
   cursor: not-allowed;
 }
+
+/* On mobile, keep the footer in the normal document flow. */
+@media (max-width: 680px) {
+  html body {
+    --app-footer-reserve: 0rem;
+  }
+
+  body .app-footer {
+    position: static;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    z-index: auto;
+    width: 100%;
+    box-shadow: none;
+  }
+}
