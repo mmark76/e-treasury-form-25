@@ -1,15 +1,20 @@
 import {
   advanceInvoiceCounter,
   employeeInvoiceCounterKey,
+  cancelActiveInvoiceReservation,
+  findActiveInvoiceReservation,
   invoiceNumberMatchesNext,
+  issueActiveInvoiceReservation,
   migrateInvoiceArchiveForEmployee,
   readInvoiceArchive,
   readInvoiceNumberState,
   readNextInvoiceNumber,
+  reserveInvoiceNumber,
   saveInvoiceArchive
 } from '../src/features/invoice-archive/storage.js';
 import {
   buildFullInvoiceIdentifier,
+  buildShortInvoiceIdentifier,
   formatInvoiceSequenceNumber,
   parseInvoiceSequenceNumber
 } from '../src/shared/invoice-number.js';
@@ -48,6 +53,10 @@ function assertEqual(name, actual, expected) {
 
 function assert(name, value) {
   report(name, Boolean(value));
+}
+
+function assertNotEqual(name, actual, unexpected) {
+  report(name, !Object.is(actual, unexpected), `did not expect "${unexpected}"`);
 }
 
 function record(id, { issuerUnitId = DEFAULT_SERVICE_ID, employeeId, employeeCode, employeeName = 'Employee', invoiceNumber }) {
@@ -137,6 +146,24 @@ assertEqual('Builds full invoice identifier', buildFullInvoiceIdentifier({
   employeeCode: 'ΜΜ',
   invoiceNumber: 1
 }), 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
+assertEqual('Builds full invoice identifier with five-digit number', buildFullInvoiceIdentifier({
+  issuerUnitCode: '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u0395',
+  employeeCode: '\u039c\u039c',
+  invoiceNumber: '00003'
+}), '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u0395-\u039c\u039c / 00003');
+assertEqual('Builds short invoice identifier', buildShortInvoiceIdentifier({
+  employeeCode: '\u039c\u039c',
+  invoiceNumber: '00003'
+}), '\u039c\u039c/00003');
+assertEqual('Short invoice identifier is blank without a valid invoice number', buildShortInvoiceIdentifier({
+  employeeCode: '\u039c\u039c',
+  invoiceNumber: ''
+}), '');
+assertEqual('Full invoice identifier is blank without a valid invoice number', buildFullInvoiceIdentifier({
+  issuerUnitCode: '\u03a5\u0395\u0395\u0392-\u03a5\u0395-\u039a\u0394\u03a7\u0395',
+  employeeCode: '\u039c\u039c',
+  invoiceNumber: ''
+}), '');
 
 const employeeA = { issuerUnitId: DEFAULT_SERVICE_ID, employeeId: 'employee-a', employeeCode: 'ΜΜ', employeeName: 'Employee A' };
 const employeeB = { issuerUnitId: DEFAULT_SERVICE_ID, employeeId: 'employee-b', employeeCode: 'ΑΠ1', employeeName: 'Employee B' };
@@ -211,6 +238,91 @@ const archiveRecords = [record('archive-first-1', { ...employeeA, invoiceNumber:
 assert('Archive save succeeds before counter update', saveInvoiceArchive(archiveRecords));
 assert('Counter update after archive succeeds', advanceInvoiceCounter(employeeA, 1, archiveRecords));
 assertEqual('Counter advances after archive save', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 2);
+
+localStorage.clear();
+const reservation = reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitName: 'Unit',
+  employeeCode: employeeA.employeeCode,
+  employeeName: employeeA.employeeName,
+  tabId: 'tab-a'
+});
+assert('Reservation succeeds for a new draft', reservation.ok);
+assertEqual('Reserved draft receives first number', reservation.record.formattedInvoiceNumber, '00001');
+assertEqual('Reserved draft stores short identifier', reservation.record.shortInvoiceIdentifier, 'ΜΜ/00001');
+assertEqual('Reserved draft status is stored', readInvoiceArchive()[0].status, 'reserved');
+assertEqual('Reload reuses active reservation', findActiveInvoiceReservation(employeeA, readInvoiceArchive()).formattedInvoiceNumber, '00001');
+assertEqual('Reservation advances the next available number', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 2);
+const reusedReservation = reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  employeeCode: employeeA.employeeCode
+});
+assert('Existing active reservation is reused', reusedReservation.existing);
+assertEqual('Reused reservation keeps the same number', reusedReservation.record.formattedInvoiceNumber, '00001');
+
+const issuedSnapshot = record('issued-from-reservation', { ...employeeA, invoiceNumber: reservation.record.invoiceNumber });
+const issuedReservation = issueActiveInvoiceReservation(employeeA, issuedSnapshot, readInvoiceArchive());
+assert('Reserved draft converts to issued invoice', issuedReservation.ok);
+assertEqual('Issued conversion keeps the reserved record id', readInvoiceArchive()[0].id, reservation.record.id);
+assertEqual('Issued conversion keeps the same number', readInvoiceArchive()[0].formattedInvoiceNumber, '00001');
+assertEqual('Issued conversion updates status', readInvoiceArchive()[0].status, 'issued');
+assertEqual('Next number remains after issued conversion', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 2);
+
+const secondReservation = reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitName: 'Unit',
+  employeeCode: employeeA.employeeCode,
+  employeeName: employeeA.employeeName
+});
+assert('Second reservation succeeds after issue', secondReservation.ok);
+assertEqual('Second reservation uses the next number', secondReservation.record.formattedInvoiceNumber, '00002');
+const cancelledReservation = cancelActiveInvoiceReservation(employeeA, { reason: 'test cancellation' }, readInvoiceArchive());
+assert('Active reservation can be cancelled', cancelledReservation.ok && cancelledReservation.cancelled);
+assertEqual('Cancelled reservation is persisted', readInvoiceArchive().find(item => item.id === secondReservation.record.id).status, 'cancelled');
+assert('Cancelled reservation stores cancellation timestamp', Boolean(readInvoiceArchive().find(item => item.id === secondReservation.record.id).cancelledAt));
+const thirdReservation = reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  issuerUnitName: 'Unit',
+  employeeCode: employeeA.employeeCode,
+  employeeName: employeeA.employeeName
+});
+assertEqual('Cancelled number is not reused', thirdReservation.record.formattedInvoiceNumber, '00003');
+
+localStorage.clear();
+const failingReservationSetItem = Storage.prototype.setItem;
+Storage.prototype.setItem = (key, value) => {
+  if (key === 'eTreasury.form25.invoiceArchive.v1') throw new Error('simulated reservation failure');
+  return failingReservationSetItem.call(localStorage, key, value);
+};
+const failedReservation = reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  employeeCode: employeeA.employeeCode
+});
+assert('Reservation write failure is reported', !failedReservation.ok && failedReservation.writeFailed);
+Storage.prototype.setItem = failingReservationSetItem;
+assertEqual('Failed reservation does not advance the counter', readNextInvoiceNumber(employeeA, readInvoiceArchive()), 1);
+
+localStorage.clear();
+let reservationLockOrder = [];
+const reservationLocks = {
+  async request(name, options, callback) {
+    reservationLockOrder.push(name);
+    return callback();
+  }
+};
+const firstReserved = await withInvoiceIssuanceLock(employeeA, () => reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  employeeCode: employeeA.employeeCode
+}), { locks: reservationLocks });
+issueActiveInvoiceReservation(employeeA, record('locked-reserved-1', { ...employeeA, invoiceNumber: firstReserved.record.invoiceNumber }), readInvoiceArchive());
+const secondReserved = await withInvoiceIssuanceLock(employeeA, () => reserveInvoiceNumber(employeeA, {
+  issuerUnitCode: 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ',
+  employeeCode: employeeA.employeeCode
+}), { locks: reservationLocks });
+assertEqual('First locked reservation gets current next number', firstReserved.record.formattedInvoiceNumber, '00001');
+assertEqual('Second locked reservation gets following number', secondReserved.record.formattedInvoiceNumber, '00002');
+assert('Reservation lock uses scoped Web Locks name', reservationLockOrder[0].includes(encodeURIComponent(employeeA.employeeId)));
+assertNotEqual('Locked reservations do not duplicate numbers', firstReserved.record.formattedInvoiceNumber, secondReserved.record.formattedInvoiceNumber);
 
 localStorage.clear();
 const failingArchiveSetItem = Storage.prototype.setItem;

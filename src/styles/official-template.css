@@ -77,7 +77,30 @@
   padding: 0;
 }
 
-.overlay-invoice-number { left: 66%; top: 2.39%; width: 28.5%; height: 2.87%; font-size: 12px; font-size: 2.2cqw; }
+.overlay-full-invoice-identifier {
+  left: 4.8%;
+  top: 2.9%;
+  width: 34%;
+  height: 1.75%;
+  color: #333;
+  font-size: 8px;
+  font-size: 1.2cqw;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.overlay-invoice-number {
+  left: 84%;
+  top: 2.72%;
+  width: 11.6%;
+  height: 2.45%;
+  justify-content: flex-start;
+  padding: 0;
+  font-size: 12px;
+  font-size: 2.2cqw;
+  text-align: left;
+  white-space: nowrap;
+}
 .overlay-department,
 .overlay-chapter-code,
 .overlay-vat-registration,

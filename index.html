@@ -44,8 +44,12 @@
           <h3 id="numbering-title">Αυτόματη αρίθμηση</h3>
           <dl class="numbering-summary">
             <div>
-              <dt>Επόμενος διαθέσιμος αριθμός</dt>
+              <dt>Δεσμευμένος αριθμός</dt>
               <dd id="next-invoice-number">00001</dd>
+            </div>
+            <div>
+              <dt>Κατάσταση</dt>
+              <dd id="invoice-number-status">Προσχέδιο — δεν έχει εκδοθεί ακόμη</dd>
             </div>
             <div>
               <dt>Επιτρεπτό εύρος</dt>
@@ -60,13 +64,13 @@
               <dd id="active-employee-code">ΜΜ</dd>
             </div>
           </dl>
-          <p class="feature-help" id="invoice-number-help">Κάθε υπάλληλος διαθέτει ανεξάρτητη προσωπική σειρά αρίθμησης από 00001 έως 99999. Η σειρά δεν επανεκκινείται. Μετά το 99999 δεν μπορούν να εκδοθούν άλλα τιμολόγια με τον συγκεκριμένο κωδικό υπαλλήλου.</p>
+          <p class="feature-help" id="invoice-number-help">Κάθε υπάλληλος διαθέτει ανεξάρτητη προσωπική σειρά αρίθμησης από 00001 έως 99999. Ο δεσμευμένος αριθμός δεν επαναχρησιμοποιείται ακόμη και αν το προσχέδιο ακυρωθεί.</p>
           <p class="feature-help numbering-warning" id="invoice-number-warning" hidden></p>
         </section>
 
         <label class="invoice-number-card invoice-only-field numbering-field">
           <span class="invoice-number-label">Αριθμός τιμολογίου</span>
-          <input id="invoiceNumber" inputmode="numeric" placeholder="Δεν έχει αποδοθεί" readonly aria-describedby="numbering-title">
+          <input id="invoiceNumber" inputmode="numeric" placeholder="Δεσμεύεται αυτόματα" readonly aria-describedby="numbering-title">
         </label>
 
         <fieldset class="issue-details-fieldset">

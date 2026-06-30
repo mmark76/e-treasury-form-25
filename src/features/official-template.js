@@ -1,12 +1,13 @@
 import { calculateInvoice } from './calculations.js';
 import { amountToGreekWords } from './number-to-words.js';
-import { buildFullInvoiceIdentifier, formatInvoiceSequenceNumber } from '../shared/invoice-number.js';
+import { buildFullInvoiceIdentifier, buildShortInvoiceIdentifier } from '../shared/invoice-number.js';
 import { DEFAULT_ISSUER_UNIT_CODE } from '../shared/service-identity.js';
 import { normalizeEmployeeCode } from '../shared/employee-profile.js';
 
 const TEMPLATE_MARKUP = `
   <img class="form-template" src="assets/gl25-template.png" alt="Επίσημο κενό έντυπο Γ.Λ.25">
   <div class="form-overlay" aria-hidden="true">
+    <span class="overlay-field overlay-full-invoice-identifier" data-output="fullInvoiceIdentifier"></span>
     <span class="overlay-field overlay-invoice-number" data-output="invoiceNumber"></span>
     <span class="overlay-field overlay-department" data-output="department"></span>
     <span class="overlay-field overlay-chapter-code" data-output="chapterCode"></span>
@@ -193,10 +194,6 @@ function getValue(id) {
   return document.getElementById(id)?.value.trim() ?? '';
 }
 
-function padInvoiceNumber(value) {
-  return formatInvoiceSequenceNumber(value);
-}
-
 function splitAmount(value) {
   const totalCents = Math.round(Math.max(0, Number(value) || 0) * 100);
   const euros = Math.floor(totalCents / 100);
@@ -249,15 +246,23 @@ export function renderOfficialTemplate() {
   const vat = splitAmount(calculation.vatAmount);
   const gross = splitAmount(calculation.grossAmount);
 
+  const issuerUnitCode = getValue('issuerUnitCode') || DEFAULT_ISSUER_UNIT_CODE;
+  const employeeCode = normalizeEmployeeCode(getValue('employeeCode'));
+  const invoiceNumber = getValue('invoiceNumber');
+
   const values = {
     department: getValue('department'),
     chapterCode: getValue('chapterCode'),
     vatRegistration: getValue('vatRegistration'),
-    invoiceNumber: buildFullInvoiceIdentifier({
-      issuerUnitCode: getValue('issuerUnitCode') || DEFAULT_ISSUER_UNIT_CODE,
-      employeeCode: normalizeEmployeeCode(getValue('employeeCode')),
-      invoiceNumber: getValue('invoiceNumber')
-    }) || padInvoiceNumber(getValue('invoiceNumber')),
+    fullInvoiceIdentifier: buildFullInvoiceIdentifier({
+      issuerUnitCode,
+      employeeCode,
+      invoiceNumber
+    }),
+    invoiceNumber: buildShortInvoiceIdentifier({
+      employeeCode,
+      invoiceNumber
+    }),
     issueDate: formatIssueDate(getValue('issueDate')),
     serviceAddress: getValue('serviceAddress'),
     servicePostalCode: getValue('servicePostalCode'),

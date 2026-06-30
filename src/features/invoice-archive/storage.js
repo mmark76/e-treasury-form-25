@@ -3,6 +3,7 @@ import {
   MAX_INVOICE_NUMBER,
   MIN_INVOICE_NUMBER,
   buildFullInvoiceIdentifier,
+  buildShortInvoiceIdentifier,
   formatInvoiceSequenceNumber,
   parseInvoiceSequenceNumber
 } from '../../shared/invoice-number.js';
@@ -21,6 +22,23 @@ const INVOICE_COUNTER_PREFIX = 'eTreasury.form25.invoiceCounter';
 const EMPLOYEE_COUNTER_PREFIX = 'eTreasury.form25.employeeInvoiceCounter';
 const EMPLOYEE_MIGRATION_VERSION_KEY = 'eTreasury.form25.employeeInvoiceMigration.v1';
 const EMPLOYEE_MIGRATION_VERSION = 1;
+
+function createArchiveRecordId(prefix = 'invoice') {
+  return crypto.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
 
 function rawInvoiceCounterKey(serviceId) {
   return `${INVOICE_COUNTER_PREFIX}.${encodeURIComponent(String(serviceId ?? '').trim().toUpperCase())}.v1`;
@@ -61,14 +79,15 @@ export function normalizeArchive(value, employeeProfile = null) {
   if (!Array.isArray(value)) return [];
 
   return value
-    .filter(record => record && typeof record.id === 'string' && record.formValues)
+    .filter(record => record && typeof record.id === 'string')
     .map(record => {
-      const issuerUnitId = sanitizeServiceId(record.issuerUnitId || record.serviceId || record.formValues?.serviceId || DEFAULT_SERVICE_ID);
-      const issuerUnitName = String(record.issuerUnitName || record.serviceName || record.formValues?.department || '').trim();
-      const issuerUnitCode = String(record.issuerUnitCode || record.formValues?.issuerUnitCode || DEFAULT_ISSUER_UNIT_CODE).trim();
-      const employeeId = String(record.employeeId || record.formValues?.employeeId || employeeProfile?.employeeId || '').trim();
-      const employeeCode = normalizeEmployeeCode(record.employeeCode || record.formValues?.employeeCode || employeeProfile?.employeeCode);
-      const employeeName = String(record.employeeName || record.formValues?.employeeName || employeeProfile?.employeeName || '').trim();
+      const formValues = record.formValues && typeof record.formValues === 'object' ? record.formValues : {};
+      const issuerUnitId = sanitizeServiceId(record.issuerUnitId || record.serviceId || formValues.serviceId || DEFAULT_SERVICE_ID);
+      const issuerUnitName = String(record.issuerUnitName || record.serviceName || formValues.department || '').trim();
+      const issuerUnitCode = String(record.issuerUnitCode || formValues.issuerUnitCode || DEFAULT_ISSUER_UNIT_CODE).trim();
+      const employeeId = String(record.employeeId || formValues.employeeId || employeeProfile?.employeeId || '').trim();
+      const employeeCode = normalizeEmployeeCode(record.employeeCode || formValues.employeeCode || employeeProfile?.employeeCode);
+      const employeeName = String(record.employeeName || formValues.employeeName || employeeProfile?.employeeName || '').trim();
       const invoiceNumber = recordNumber(record);
       const formattedInvoiceNumber = formatInvoiceSequenceNumber(invoiceNumber);
       const fullInvoiceIdentifier = record.fullInvoiceIdentifier || buildFullInvoiceIdentifier({
@@ -76,8 +95,14 @@ export function normalizeArchive(value, employeeProfile = null) {
         employeeCode,
         invoiceNumber
       });
+      const shortInvoiceIdentifier = record.shortInvoiceIdentifier || buildShortInvoiceIdentifier({
+        employeeCode,
+        invoiceNumber
+      });
+      const status = ['reserved', 'issued', 'cancelled'].includes(record.status) ? record.status : 'issued';
       return {
         ...record,
+        status,
         serviceId: issuerUnitId,
         serviceName: issuerUnitName,
         issuerUnitId,
@@ -89,8 +114,9 @@ export function normalizeArchive(value, employeeProfile = null) {
         invoiceNumber,
         formattedInvoiceNumber,
         fullInvoiceIdentifier,
+        shortInvoiceIdentifier,
         formValues: {
-          ...record.formValues,
+          ...formValues,
           serviceId: issuerUnitId,
           issuerUnitCode,
           employeeId,
@@ -259,6 +285,124 @@ export function advanceInvoiceCounter(scopeOrIssuerUnitId = DEFAULT_SERVICE_ID, 
   return scope.employeeId
     ? writeJson(employeeInvoiceCounterKey(scope), safeCounter)
     : writeJson(invoiceCounterKey(scope.issuerUnitId), safeCounter);
+}
+
+export function findActiveInvoiceReservation(scopeOrIssuerUnitId = DEFAULT_SERVICE_ID, records = readInvoiceArchive()) {
+  const scope = createNumberingScope(scopeOrIssuerUnitId);
+  return records.find(record =>
+    record.status === 'reserved' &&
+    recordBelongsToScope(record, scope)
+  ) ?? null;
+}
+
+export function reserveInvoiceNumber(scopeOrIssuerUnitId = DEFAULT_SERVICE_ID, details = {}, records = readInvoiceArchive()) {
+  const scope = createNumberingScope(scopeOrIssuerUnitId);
+  const existing = findActiveInvoiceReservation(scope, records);
+  if (existing) return { ok: true, existing: true, exhausted: false, record: existing };
+
+  const nextNumber = readNextInvoiceNumber(scope, records);
+  if (nextNumber === null) return { ok: false, exhausted: true, record: null };
+
+  const formattedInvoiceNumber = formatInvoiceSequenceNumber(nextNumber);
+  const issuerUnitCode = String(details.issuerUnitCode || DEFAULT_ISSUER_UNIT_CODE).trim();
+  const issuerUnitName = String(details.issuerUnitName || '').trim();
+  const employeeCode = normalizeEmployeeCode(details.employeeCode);
+  const employeeName = String(details.employeeName || '').trim();
+  const fullInvoiceIdentifier = buildFullInvoiceIdentifier({ issuerUnitCode, employeeCode, invoiceNumber: nextNumber });
+  const shortInvoiceIdentifier = buildShortInvoiceIdentifier({ employeeCode, invoiceNumber: nextNumber });
+  if (!scope.employeeId || !employeeCode || !fullInvoiceIdentifier || !shortInvoiceIdentifier) {
+    return { ok: false, exhausted: false, invalidProfile: true, record: null };
+  }
+
+  const reservedAt = new Date().toISOString();
+  const record = {
+    id: createArchiveRecordId('reservation'),
+    status: 'reserved',
+    serviceId: scope.issuerUnitId,
+    serviceName: issuerUnitName,
+    issuerUnitId: scope.issuerUnitId,
+    issuerUnitCode,
+    issuerUnitName,
+    employeeId: scope.employeeId,
+    employeeCode,
+    employeeName,
+    invoiceNumber: nextNumber,
+    formattedInvoiceNumber,
+    fullInvoiceIdentifier,
+    shortInvoiceIdentifier,
+    reservedAt,
+    updatedAt: reservedAt,
+    tabId: details.tabId || '',
+    draftId: details.draftId || '',
+    createdAt: reservedAt,
+    createdAtDisplay: formatDateTime(reservedAt),
+    formValues: {
+      serviceId: scope.issuerUnitId,
+      issuerUnitCode,
+      employeeId: scope.employeeId,
+      employeeCode,
+      employeeName,
+      invoiceNumber: formattedInvoiceNumber,
+      department: issuerUnitName
+    }
+  };
+
+  const nextRecords = [...records, record];
+  if (!saveInvoiceArchive(nextRecords)) {
+    return { ok: false, exhausted: false, writeFailed: true, record: null };
+  }
+  advanceInvoiceCounter(scope, nextNumber, nextRecords);
+
+  return { ok: true, existing: false, exhausted: false, record };
+}
+
+export function cancelActiveInvoiceReservation(scopeOrIssuerUnitId = DEFAULT_SERVICE_ID, { reason = '' } = {}, records = readInvoiceArchive()) {
+  const scope = createNumberingScope(scopeOrIssuerUnitId);
+  const reservation = findActiveInvoiceReservation(scope, records);
+  if (!reservation) return { ok: true, cancelled: false, record: null };
+
+  const cancelledAt = new Date().toISOString();
+  const nextRecords = records.map(record => record.id === reservation.id
+    ? {
+      ...record,
+      status: 'cancelled',
+      cancelledAt,
+      cancellationReason: reason,
+      updatedAt: cancelledAt
+    }
+    : record
+  );
+
+  if (!saveInvoiceArchive(nextRecords)) return { ok: false, cancelled: false, record: reservation };
+
+  return {
+    ok: true,
+    cancelled: true,
+    record: nextRecords.find(record => record.id === reservation.id) ?? null
+  };
+}
+
+export function issueActiveInvoiceReservation(scopeOrIssuerUnitId = DEFAULT_SERVICE_ID, snapshot, records = readInvoiceArchive()) {
+  const scope = createNumberingScope(scopeOrIssuerUnitId);
+  const reservation = findActiveInvoiceReservation(scope, records);
+  if (!reservation) return { ok: false, missingReservation: true };
+  if (reservation.invoiceNumber !== snapshot.invoiceNumber) return { ok: false, numberMismatch: true, reservation };
+
+  const issuedAt = new Date().toISOString();
+  const issuedRecord = {
+    ...reservation,
+    ...snapshot,
+    id: reservation.id,
+    status: 'issued',
+    reservedAt: reservation.reservedAt,
+    issuedAt: snapshot.issuedAt || issuedAt,
+    updatedAt: issuedAt,
+    tabId: reservation.tabId || snapshot.tabId || ''
+  };
+  const nextRecords = records.map(record => record.id === reservation.id ? issuedRecord : record);
+  if (!saveInvoiceArchive(nextRecords)) return { ok: false, writeFailed: true, reservation };
+
+  return { ok: true, record: issuedRecord, records: nextRecords };
 }
 
 export function reserveNextInvoiceNumber(scopeOrIssuerUnitId = DEFAULT_SERVICE_ID, records = readInvoiceArchive()) {

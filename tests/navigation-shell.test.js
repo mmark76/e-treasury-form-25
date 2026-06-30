@@ -90,15 +90,39 @@ const servicePreviewOutputs = new Set([
   'servicePostalCode',
   'revenueAccount'
 ]);
+const reservedPreviewOutputs = new Set(['invoiceNumber', 'fullInvoiceIdentifier']);
 
 function outputText(key) {
   return app.querySelector(`#invoice-preview [data-output="${key}"]`)?.textContent ?? '';
+}
+
+function waitForCondition(description, predicate) {
+  return new Promise((resolve, reject) => {
+    const started = Date.now();
+
+    function check() {
+      if (predicate()) {
+        resolve();
+        return;
+      }
+
+      if (Date.now() - started > 3000) {
+        reject(new Error(description));
+        return;
+      }
+
+      setTimeout(check, 50);
+    }
+
+    check();
+  });
 }
 
 function assertServiceOnlyPreview(context) {
   [...app.querySelectorAll('#invoice-preview [data-output]')].forEach(output => {
     const key = output.dataset.output;
     if (servicePreviewOutputs.has(key)) return;
+    if (reservedPreviewOutputs.has(key)) return;
     assertEqual(`${context}: ${key} remains blank`, output.textContent, '');
   });
   servicePreviewOutputs.forEach(key => {
@@ -187,19 +211,24 @@ assert('Το έντυπο διατηρεί αναλογία Α4', Math.abs((prev
 
 cards[0].click();
 assertEqual('Ενεργή προβολή αρίθμησης', app.querySelector('.workspace')?.dataset.activeView, 'numbering');
+await waitForCondition('Ο δεσμευμένος αριθμός δεν εμφανίστηκε στο προσχέδιο.', () => app.getElementById('invoiceNumber')?.value === '00001');
 assert('Η πρόσθετη στήλη ανοίγει στην αρίθμηση', isVisible(app.querySelector('.editor-panel')));
 assert('Το ενεργό βασικό κουμπί επισημαίνεται', cards[0].getAttribute('aria-current') === 'page');
 assert('Η αρίθμηση κρατά ορατή την προεπισκόπηση', isVisible(app.querySelector('.preview-panel')));
 assert('Τα IDs ενεργειών διατηρούνται', app.getElementById('clear-form') && app.getElementById('print-form') && app.getElementById('download-pdf'));
 assertServiceOnlyPreview('Numbering tab before invoice input');
-assertEqual('Ο πρώτος επόμενος αριθμός είναι 00001', app.getElementById('next-invoice-number')?.textContent.trim(), '00001');
+assertEqual('Ο πρώτος δεσμευμένος αριθμός είναι ΜΜ/00001', app.getElementById('next-invoice-number')?.textContent.trim(), 'ΜΜ/00001');
+assertEqual('Η κατάσταση αριθμού δείχνει προσχέδιο', app.getElementById('invoice-number-status')?.textContent.trim(), 'Προσχέδιο — δεν έχει εκδοθεί ακόμη');
 assert('Ο αριθμός τιμολογίου είναι μόνο για ανάγνωση', app.getElementById('invoiceNumber')?.readOnly);
-assertEqual('Το πεδίο αριθμού τιμολογίου είναι άδειο πριν την καταχώριση', app.getElementById('invoiceNumber')?.value, '');
-assertEqual('Το πεδίο αριθμού τιμολογίου δείχνει placeholder πριν την καταχώριση', app.getElementById('invoiceNumber')?.placeholder, 'Δεν έχει αποδοθεί');
+assertEqual('Το πεδίο αριθμού τιμολογίου έχει δεσμευμένο αριθμό πριν την καταχώριση', app.getElementById('invoiceNumber')?.value, '00001');
+assertEqual('Το πεδίο αριθμού τιμολογίου δείχνει placeholder δέσμευσης', app.getElementById('invoiceNumber')?.placeholder, 'Δεσμεύεται αυτόματα');
+assert('Η εκδούσα μονάδα κλειδώνει όσο υπάρχει ενεργό δεσμευμένο draft', app.getElementById('issuerUnitCode')?.readOnly);
+assert('Το serviceId κλειδώνει όσο υπάρχει ενεργό δεσμευμένο draft', app.getElementById('serviceId')?.readOnly);
 assert('Δεν υπάρχει ξεχωριστή ένδειξη τρέχοντος αριθμού τιμολογίου', !app.getElementById('current-invoice-number'));
 assert('Το πεδίο αριθμού τιμολογίου δεν εμφανίζει 00000 πριν την καταχώριση', app.getElementById('invoiceNumber')?.value !== '00000');
 assert('Η παλιά ένδειξη Στοιχεία έκδοσης δεν εμφανίζεται στην αρίθμηση', ![...app.querySelectorAll('legend')].some(legend => isVisible(legend) && legend.textContent.trim() === 'Στοιχεία έκδοσης'));
-assert('Ο αύξων αριθμός δεν εμφανίζεται στο Α4 πριν την καταχώριση', outputText('invoiceNumber') === '');
+assertEqual('Ο σύντομος δεσμευμένος αριθμός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('invoiceNumber'), 'ΜΜ/00001');
+assertEqual('Ο πλήρης δεσμευμένος κωδικός εμφανίζεται στο Α4 πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
 assert('Το πεδίο αύξοντα αριθμού εμφανίζεται στην αρίθμηση', isVisible(fieldWrapper('invoiceNumber')));
 const nextNumberCard = app.querySelector('.numbering-summary div');
 const invoiceNumberCard = fieldWrapper('invoiceNumber');
@@ -271,20 +300,31 @@ cards[2].click();
 app.getElementById('debtorName').value = 'SUN TOWER PLAZA LTD';
 app.getElementById('debtorName').dispatchEvent(new Event('input', { bubbles: true }));
 assertEqual('Debtor input starts filling the A4 preview', outputText('debtorName'), 'SUN TOWER PLAZA LTD');
-assertEqual('Το Α4 δεν εμφανίζει 00000 πριν την καταχώριση', outputText('invoiceNumber'), '');
+assertEqual('Το Α4 εμφανίζει τον δεσμευμένο σύντομο κωδικό πριν την καταχώριση', outputText('invoiceNumber'), 'ΜΜ/00001');
+assertEqual('Το Α4 εμφανίζει τον δεσμευμένο πλήρη κωδικό πριν την καταχώριση', outputText('fullInvoiceIdentifier'), 'ΥΕΕΒ-ΥΕ-ΚΔΧΕ-ΜΜ / 00001');
 app.querySelector('[data-view-close]').click();
 
 cards[5].click();
 const registerButton = app.querySelector('.invoice-archive-panel .button-primary');
 registerButton.click();
 assertEqual('Η επιτυχής καταχώριση αποδίδει αριθμό στο πεδίο', app.getElementById('invoiceNumber')?.value, '00001');
-assertEqual('Ο επόμενος διαθέσιμος αριθμός ενημερώνεται μετά την καταχώριση', app.getElementById('next-invoice-number')?.textContent.trim(), '00002');
+const expectedEmployeeCode = app.getElementById('employeeCode')?.value.trim().toUpperCase() ?? '';
+const expectedIssuerUnitCode = app.getElementById('issuerUnitCode')?.value.trim() ?? '';
+assertEqual('Το No. εμφανίζει τον σύντομο κωδικό στο Α4', outputText('invoiceNumber'), `${expectedEmployeeCode}/00001`);
+assertEqual('Το πάνω αριστερό πεδίο εμφανίζει τον πλήρη κωδικό στο Α4', outputText('fullInvoiceIdentifier'), `${expectedIssuerUnitCode}-${expectedEmployeeCode} / 00001`);
+assertEqual('Μετά την καταχώριση παραμένει ο εκδοθείς αριθμός στην ένδειξη', app.getElementById('next-invoice-number')?.textContent.trim(), `${expectedEmployeeCode}/00001`);
 
 app.getElementById('clear-form').click();
-assertEqual('Ο καθαρισμός αδειάζει το πεδίο αριθμού τιμολογίου', app.getElementById('invoiceNumber')?.value, '');
+await waitForCondition('Ο καθαρισμός δεν δέσμευσε νέο αριθμό.', () => app.getElementById('invoiceNumber')?.value === '00002');
+assertEqual('Ο καθαρισμός ξεκινά νέο δεσμευμένο αριθμό', app.getElementById('invoiceNumber')?.value, '00002');
+assertEqual('Ο καθαρισμός εμφανίζει τον νέο σύντομο κωδικό στο Α4', outputText('invoiceNumber'), `${expectedEmployeeCode}/00002`);
+assertEqual('Ο καθαρισμός εμφανίζει τον νέο πλήρη κωδικό στο Α4', outputText('fullInvoiceIdentifier'), `${expectedIssuerUnitCode}-${expectedEmployeeCode} / 00002`);
 
 app.querySelector('.invoice-archive-panel [data-action="load"]').click();
+await waitForCondition('Η φόρτωση αρχειοθετημένου τιμολογίου δεν ολοκληρώθηκε.', () => app.getElementById('invoiceNumber')?.value === '00001');
 assertEqual('Η φόρτωση αρχειοθετημένου τιμολογίου εμφανίζει τον αποθηκευμένο αριθμό', app.getElementById('invoiceNumber')?.value, '00001');
+assertEqual('Η φόρτωση αρχειοθετημένου τιμολογίου εμφανίζει τον σύντομο κωδικό στο Α4', outputText('invoiceNumber'), `${expectedEmployeeCode}/00001`);
+assertEqual('Η φόρτωση αρχειοθετημένου τιμολογίου εμφανίζει τον πλήρη κωδικό στο Α4', outputText('fullInvoiceIdentifier'), `${expectedIssuerUnitCode}-${expectedEmployeeCode} / 00001`);
 app.querySelector('[data-view-close]').click();
 
 frame.contentWindow.focus();

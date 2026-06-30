@@ -4,6 +4,7 @@ import { getFormValues } from '../../shared/form-state.js';
 import { readCustomers } from '../customers/storage.js';
 import {
   buildFullInvoiceIdentifier,
+  buildShortInvoiceIdentifier,
   formatInvoiceSequenceNumber,
   parseInvoiceSequenceNumber
 } from '../../shared/invoice-number.js';
@@ -74,10 +75,15 @@ export function createInvoiceSnapshot(form) {
     employeeCode,
     invoiceNumber
   });
+  const shortInvoiceIdentifier = buildShortInvoiceIdentifier({
+    employeeCode,
+    invoiceNumber
+  });
   const createdAt = new Date().toISOString();
 
   return {
     id: createRecordId(),
+    status: 'issued',
     serviceId: issuerUnitId,
     serviceName: issuerUnitName,
     issuerUnitId,
@@ -89,6 +95,7 @@ export function createInvoiceSnapshot(form) {
     invoiceNumber,
     formattedInvoiceNumber,
     fullInvoiceIdentifier,
+    shortInvoiceIdentifier,
     issueDate: formValues.issueDate || '',
     issueDateValue: dateValue(formValues.issueDate),
     customerId: findCustomerIdForForm(form, formValues),
@@ -147,6 +154,8 @@ export function recordSummary(record) {
     employeeName: record.employeeName || '',
     invoiceNumber: record.formattedInvoiceNumber || padInvoiceNumber(record.invoiceNumber) || 'Χωρίς αριθμό',
     fullInvoiceIdentifier: record.fullInvoiceIdentifier || record.formattedInvoiceNumber || padInvoiceNumber(record.invoiceNumber) || 'Χωρίς αριθμό',
+    shortInvoiceIdentifier: record.shortInvoiceIdentifier || record.formattedInvoiceNumber || padInvoiceNumber(record.invoiceNumber) || 'Χωρίς αριθμό',
+    status: record.status || 'issued',
     issueDate: record.issueDate || '',
     debtorName: record.debtorName || '',
     debtorTaxId: record.debtorTaxId || '',

@@ -2,12 +2,12 @@ import { setFormValues } from '../../shared/form-state.js';
 import { readStoredValue } from '../../shared/storage.js';
 import { downloadOfficialPdf } from '../pdf-download/index.js';
 import {
-  advanceInvoiceCounter,
+  cancelActiveInvoiceReservation,
+  findActiveInvoiceReservation,
   formatInvoiceSequenceNumber,
-  invoiceNumberMatchesNext,
+  issueActiveInvoiceReservation,
   readInvoiceArchive,
   readInvoiceNumberState,
-  readNextInvoiceNumber,
   saveInvoiceArchive
 } from './storage.js';
 import { getCurrentIssuerUnitCode, getCurrentServiceId } from '../../shared/service-identity.js';
@@ -194,6 +194,7 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
         <th>Αριθμός</th>
         <th>Υπηρεσία</th>
         <th>Υπάλληλος</th>
+        <th>Κατάσταση</th>
         <th>Ημερομηνία</th>
         <th>Πελάτης</th>
         <th>Φορολογική ταυτότητα</th>
@@ -261,6 +262,7 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
         <dt>Αριθμός</dt><dd>${escapeHtml(summary.fullInvoiceIdentifier)}</dd>
         <dt>Υπηρεσία</dt><dd>${escapeHtml(summary.serviceName || '-')}</dd>
         <dt>Κωδικός υπαλλήλου</dt><dd>${escapeHtml(summary.employeeCode || '-')}</dd>
+        <dt>Κατάσταση</dt><dd>${escapeHtml(summary.status)}</dd>
         <dt>Ημερομηνία έκδοσης</dt><dd>${escapeHtml(summary.issueDate)}</dd>
         <dt>Καταχώριση</dt><dd>${escapeHtml(record.createdAtDisplay)}</dd>
         <dt>Πελάτης</dt><dd>${escapeHtml(summary.debtorName || '-')}</dd>
@@ -281,7 +283,7 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
     if (!filtered.length) {
       const row = document.createElement('tr');
       const cell = document.createElement('td');
-      cell.colSpan = 10;
+      cell.colSpan = 11;
       cell.textContent = 'Δεν υπάρχουν εγγραφές.';
       row.append(cell);
       tbody.append(row);
@@ -297,6 +299,7 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
         <td>${escapeHtml(summary.fullInvoiceIdentifier)}</td>
         <td>${escapeHtml(summary.serviceName || '-')}</td>
         <td>${escapeHtml(summary.employeeCode || '-')}</td>
+        <td>${escapeHtml(summary.status)}</td>
         <td>${escapeHtml(summary.issueDate)}</td>
         <td>${escapeHtml(summary.debtorName)}</td>
         <td>${escapeHtml(summary.debtorTaxId)}</td>
@@ -350,14 +353,14 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
 
     if (!form.reportValidity()) return { ok: false };
 
-    const invoiceNumberField = form.querySelector('#invoiceNumber');
-    const nextNumber = readNextInvoiceNumber(scope, freshRecords);
-    if (nextNumber === null) {
-      window.alert('Η προσωπική σειρά αρίθμησης 00001–99999 έχει εξαντληθεί. Δεν μπορούν να εκδοθούν άλλα τιμολόγια με τον συγκεκριμένο κωδικό υπαλλήλου.');
+    const reservation = findActiveInvoiceReservation(scope, freshRecords);
+    if (!reservation) {
+      window.alert('Δεν υπάρχει ενεργός δεσμευμένος αριθμός για το προσχέδιο. Ανοίξτε νέο τιμολόγιο για να δεσμευτεί αριθμός πριν την καταχώριση.');
       window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
       return { ok: false };
     }
-    if (invoiceNumberField) invoiceNumberField.value = formatInvoiceSequenceNumber(nextNumber);
+    const invoiceNumberField = form.querySelector('#invoiceNumber');
+    if (invoiceNumberField) invoiceNumberField.value = reservation.formattedInvoiceNumber;
 
     const snapshot = createInvoiceSnapshot(form);
     if (!snapshot.invoiceNumber) {
@@ -372,16 +375,16 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
       window.alert('Συμπλήρωσε έγκυρα στοιχεία υπαλλήλου πριν την καταχώριση.');
       return { ok: false };
     }
-    if (!invoiceNumberMatchesNext(scope, snapshot.invoiceNumber, freshRecords)) {
-      window.alert('Ο αριθμός τιμολογίου δεν είναι ο επόμενος διαθέσιμος αριθμός για τη συγκεκριμένη Υπηρεσία.');
-      window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
+    if (snapshot.invoiceNumber !== reservation.invoiceNumber) {
+      window.alert('Ο αριθμός της φόρμας δεν ταιριάζει με τον δεσμευμένο αριθμό του προσχεδίου.');
       return { ok: false };
     }
 
     const existing = freshRecords.find(record =>
       record.issuerUnitId === snapshot.issuerUnitId &&
       record.employeeId === snapshot.employeeId &&
-      record.invoiceNumber === snapshot.invoiceNumber
+      record.invoiceNumber === snapshot.invoiceNumber &&
+      record.id !== reservation.id
     );
     if (existing) {
       window.alert(`Υπάρχει ήδη τιμολόγιο με αριθμό ${snapshot.invoiceNumber}.`);
@@ -389,18 +392,19 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
     }
 
     selectedRecordId = snapshot.id;
-    const nextRecords = [...freshRecords, snapshot];
-    if (!persist(nextRecords)) {
+    const issued = issueActiveInvoiceReservation(scope, snapshot, freshRecords);
+    if (!issued.ok) {
       window.alert('Δεν ήταν δυνατή η αποθήκευση του αρχείου τιμολογίων. Το τιμολόγιο δεν καταχωρίστηκε.');
       return { ok: false };
     }
-    if (!advanceInvoiceCounter(scope, snapshot.invoiceNumber, nextRecords)) {
-      window.alert('Το τιμολόγιο καταχωρίστηκε, αλλά δεν ήταν δυνατή η ενημέρωση του μετρητή. Η επόμενη αρίθμηση θα υπολογιστεί από το αρχείο τιμολογίων.');
-    }
+    records = issued.records;
+    selectedRecordId = issued.record.id;
+    renderTable();
+    window.dispatchEvent(new CustomEvent('invoice-archive:updated'));
     onFormUpdated?.(form);
-    renderDetail(snapshot);
+    renderDetail(issued.record);
     notifyTabs('invoice-issued', { scope });
-    return { ok: true, snapshot };
+    return { ok: true, snapshot: issued.record };
   }
 
   registerButton.addEventListener('click', async () => {
@@ -589,6 +593,18 @@ export function createInvoiceArchivePanel({ form, renderOfficialTemplate, onForm
       selectedRecordId = '';
       renderDetail(null);
       return;
+    }
+
+    const currentReservation = findActiveInvoiceReservation(activeScope(form), readInvoiceArchive());
+    if (currentReservation && currentReservation.id !== record.id) {
+      const confirmed = window.confirm(`Ο δεσμευμένος αριθμός ${currentReservation.shortInvoiceIdentifier || currentReservation.formattedInvoiceNumber} θα ακυρωθεί πριν φορτωθεί άλλη εγγραφή. Να συνεχίσουμε;`);
+      if (!confirmed) return;
+      const cancelled = cancelActiveInvoiceReservation(activeScope(form), { reason: 'load-archive-record' }, readInvoiceArchive());
+      if (!cancelled.ok) {
+        window.alert('Δεν ήταν δυνατή η ακύρωση του ενεργού δεσμευμένου αριθμού.');
+        return;
+      }
+      refreshRecords();
     }
 
     loadRecordToForm(record, form, renderOfficialTemplate, onFormUpdated);

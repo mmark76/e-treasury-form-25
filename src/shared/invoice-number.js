@@ -31,3 +31,12 @@ export function buildFullInvoiceIdentifier({ issuerUnitCode, employeeCode, invoi
 
   return `${unit}-${employee} / ${formattedInvoiceNumber}`;
 }
+
+export function buildShortInvoiceIdentifier({ employeeCode, invoiceNumber }) {
+  const formattedInvoiceNumber = formatInvoiceSequenceNumber(invoiceNumber);
+  const employee = String(employeeCode ?? '').trim().toUpperCase();
+
+  if (!employee || !formattedInvoiceNumber) return '';
+
+  return `${employee}/${formattedInvoiceNumber}`;
+}
